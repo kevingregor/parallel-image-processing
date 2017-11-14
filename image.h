@@ -1,0 +1,96 @@
+
+//
+//
+// HEADER FILE DEFINING THE IMAGE AND ITS COMPONENTS
+//
+//
+
+
+#if !defined(IMAGE_H)
+
+#define IMAGE_H
+
+
+//
+// IMAGE FORMATS
+//
+enum FORMAT
+{
+	L_8               = 0,    // unsigned 8-bit Luminance
+	L_16              = 1,    // unsigned 16-bit Luminance
+	L_32              = 2,    // unsigned 32-bit Luminance
+	RGB_888           = 3,    // unsigned 8-bit per Channel (RGB)
+	RGBX_8888         = 4,    // similar to RGB888 but with an additional undefined Channel
+	NUM_FORMATS       = 5,
+	INVALID_FORMAT    = -1
+}
+
+
+//
+// IMAGE MEMORY LAYOUTS
+//
+enum LAYOUT
+{
+	STRIDED            = 0,    // Linear, Row-Major Layout
+	BLOCK_LINEAR_8     = 1,    // Blocked Layout with Block Size 8 x 8
+	BLOCK_LINEAR_16    = 2,    // Blocked Layout with Block Size 16 x 16
+	BLOCK_LINEAR_32    = 3,    // Blocked Layout with Block Size 32 x 32
+	TWIDDLED           = 4,    // Z-Morton Layout
+	NUM_LAYOUTS        = 5,
+	INVALID_LAYOUT     = -1
+}
+
+
+//
+// IMAGE
+//
+class IMAGE
+{
+	private:
+
+	// Image Width in terms of Pixels
+	int           m_width;
+	
+	// Image Height in terms of Pixels
+	int           m_height;
+	
+	// Pixel Format of the Image
+	FORMAT        m_format;
+
+	// Memory Layout of the Pixels
+	LAYOUT        m_layout;
+
+	// Image Data
+	void *        m_pixel_data;
+
+	public:
+
+	IMAGE(int width, int height, FORMAT format, LAYOUT layout, void *raw_data):
+	m_width(width),
+	m_height(height),
+	m_format(format),
+	m_layout(layout),
+	m_pixel_data(NULL)
+	{
+		// Validate the incoming parameters, if at all ...
+		
+		// Convert the incoming raw pixel data to the desired Layout
+		// The incoming raw pixel data is always suppossed to be STRIDED
+		switch (m_layout)
+		{
+			case STRIDED:
+
+			case BLOCK_LINEAR_8:
+
+			case BLOCK_LINEAR_16:
+
+			case BLOCK_LINEAR_32:
+
+			case TWIDDLED:
+		}
+
+	}
+
+
+
+#endif  // !defined(IMAGE_H)
