@@ -23,7 +23,7 @@ enum FORMAT
 	RGBX_8888         = 4,    // similar to RGB888 but with an additional undefined Channel
 	NUM_FORMATS       = 5,
 	INVALID_FORMAT    = -1
-}
+};
 
 
 //
@@ -38,7 +38,7 @@ enum LAYOUT
 	TWIDDLED           = 4,    // Z-Morton Layout
 	NUM_LAYOUTS        = 5,
 	INVALID_LAYOUT     = -1
-}
+};
 
 
 //
@@ -66,31 +66,7 @@ class IMAGE
 	public:
 
 	IMAGE(int width, int height, FORMAT format, LAYOUT layout, void *raw_data):
-	m_width(width),
-	m_height(height),
-	m_format(format),
-	m_layout(layout),
-	m_pixel_data(NULL)
-	{
-		// Validate the incoming parameters, if at all ...
-		
-		// Convert the incoming raw pixel data to the desired Layout
-		// The incoming raw pixel data is always suppossed to be STRIDED
-		switch (m_layout)
-		{
-			case STRIDED:
-
-			case BLOCK_LINEAR_8:
-
-			case BLOCK_LINEAR_16:
-
-			case BLOCK_LINEAR_32:
-
-			case TWIDDLED:
-		}
-
-	}
-
+};
 
 
 #endif  // !defined(IMAGE_H)
