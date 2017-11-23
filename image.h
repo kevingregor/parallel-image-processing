@@ -63,6 +63,9 @@ class IMAGE
 	// Image Data
 	void *        m_pixel_data;
 
+	// Processed Image Data
+	void *        m_processed_pixel_data;
+
 	public:
 
 	IMAGE(int width, int height, FORMAT format, LAYOUT layout, void *raw_data):

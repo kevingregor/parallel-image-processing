@@ -59,8 +59,35 @@ int bytes_per_pixel(FORMAT format)
 
 
 // Need to move this into a separate file for handling memory_layouts
+int channels_per_pixel(FORMAT format)
+{
+	switch (format)
+	{
+		case L_8:        return 1;
+		case L_16:       return 1;
+		case L_32:       return 1;
+		case RGB_888:    return 3;
+		case RGBX_8888:  return 4;
+		default:         return 0;
+	}
+}
+
+
+// Need to move this into a separate file for handling memory_layouts
 int get_pixel_offset(IMAGE& image, int x_coord, int y_coord)
 {
+	switch (image.m_layout)
+	{
+		case STRIDED:
+		{
+			return (image.m_width * y_coord) + x_coord;
+		}
+		default:
+		{
+			assert(!"Not Implemented");
+		}
+	}
+
 	return 0;
 }
 
