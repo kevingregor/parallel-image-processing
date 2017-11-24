@@ -1,13 +1,25 @@
-
 #include "image.h"
+#include <stdio.h>
+#include <stdlib.h> 
+#include <string.h> 
+#include <assert.h>
 
-void IMAGE::IMAGE(int width, int height, FORMAT format, LAYOUT layout, void *raw_data):
-m_width(width),
-m_height(height),
-m_format(format),
-m_layout(layout),
-m_pixel_data(NULL)
+void * CreateInstanceOfImage(double * indata, int r, int c, double * output)
 {
+    IMAGE *img = new IMAGE();
+    FORMAT format = L_8; // Dummy Value. Not really sure what format is
+    LAYOUT layout = STRIDED;
+    img->image(r, c, format, layout, indata);
+    return img;
+}
+
+void IMAGE::image(int width, int height, FORMAT format, LAYOUT layout, void *raw_data)
+{
+	m_width = width;
+	m_height = height;
+	m_format = format;
+	m_layout = layout;
+
 	int size = 0;
 
 	// Validate the incoming parameters, if at all ...
