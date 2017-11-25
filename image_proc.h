@@ -4,10 +4,15 @@
 // HEADER FILE THAT DEFINES FILTER KERNEL AND THE RELATED DETAILS
 //
 //
+
+#include "image.h"
+
+# if !defined(IMAGE_PROC_H)
+
+#define IMAGE_PROC_H
+
 extern "C" 
 {
-
-
 	enum FILTER_TYPE
 	{
 		BOX_FILTER          = 0,
@@ -15,6 +20,14 @@ extern "C"
 		EDGE_DETECT         = 2,
 		NUM_FILTER_TYPES    = 3,
 		INVALID_FILTER_TYPE = -1
+	};
+
+
+	enum LAYOUT_CONVERSION_DIRECTION
+	{
+		CONVERT_LAYOUT_IN      = 0,
+		CONVERT_LAYOUT_OUT     = 1,
+		CONVERT_LAYOUT_INVALID = -1
 	};
 
 
@@ -45,7 +58,10 @@ extern "C"
 		IMAGE_PROC(){}
 
 		bool convolve(IMAGE& image, KERNEL& kernel);
+
+		bool convert_layout(IMAGE &image, LAYOUT_CONVERSION_DIRECTION direction, void *raw_data);
 	};
-
-
 }
+
+#endif  // !defined(IMAGE_PROC_H)
+

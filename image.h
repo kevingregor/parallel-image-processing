@@ -4,15 +4,17 @@
 // HEADER FILE DEFINING THE IMAGE AND ITS COMPONENTS
 //
 //
+
+#include <stdint.h>
+#include <assert.h>
+#include <stdlib.h>
+
+#if !defined(IMAGE_H)
+
+#define IMAGE_H
+
 extern "C" 
 {
-
-
-	#if !defined(IMAGE_H)
-
-	#define IMAGE_H
-
-
 	//
 	// IMAGE FORMATS
 	//
@@ -48,7 +50,7 @@ extern "C"
 	//
 	class IMAGE
 	{
-		public:
+		private:
 
 		// Image Width in terms of Pixels
 		int           m_width;
@@ -68,15 +70,48 @@ extern "C"
 		// Processed Image Data
 		void *        m_processed_pixel_data;
 
-		// public:
+		public:
 
-		void image(int width, int height, FORMAT format, LAYOUT layout, void *raw_data);
+		IMAGE(int width, int height, FORMAT format, LAYOUT layout, void *raw_data);
+
+		~IMAGE()
+		{
+			if (m_pixel_data)
+				free(m_pixel_data);
+
+			if (m_processed_pixel_data)
+				free(m_processed_pixel_data);
+		}
+
+		int get_image_width()	{ return m_width; }
+
+		int get_image_height()	{ return m_height; }
+
+		FORMAT get_image_format()	{ return m_format; }
+
+		LAYOUT get_image_layout()	{ return m_layout; }
+
+		void *get_image_pixel_data()	{ return m_pixel_data; }
+
+		void *get_image_processed_pixel_data()	{ return m_processed_pixel_data; }
+
+		int get_pixel_offset(int x_coord, int y_coord);
 	};
 
 	int bytes_per_pixel(FORMAT format);
-	int channels_per_pixel(FORMAT format);
-	int get_pixel_offset(IMAGE& image, int x_coord, int y_coord);
-	void * CreateInstanceOfImage( double * indata,  int r, int c, double * output );
 
-	#endif  // !defined(IMAGE_H)
+	int channels_per_pixel(FORMAT format);
+
+	void normalize_pixel_data(void *input, float *output, FORMAT format);
+
+	void *create_image_instance(void *indata,  int r, int c);
+
+	void perform_filtering(void *image_obj);
+
+	void get_processed_image(void *image_obj, void *output_data);
+
+	void destroy_image_instance(void *image_obj);
 }
+
+#endif  // !defined(IMAGE_H)
+
