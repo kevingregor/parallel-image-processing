@@ -64,6 +64,10 @@ extern "C"
 		// Memory Layout of the Pixels
 		LAYOUT        m_layout;
 
+		// Number of Blocks along the width
+		// Applicable for the Block_Linear Layout
+		int           m_width_in_blocks;
+
 		// Image Data
 		void *        m_pixel_data;
 

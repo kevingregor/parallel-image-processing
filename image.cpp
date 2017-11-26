@@ -14,7 +14,7 @@ void *create_image_instance(void *indata, int width, int height)
 	// The following two values should be input args ideally
 	// But hard-coding just for the time being
     FORMAT format = RGB_888;
-    LAYOUT layout = STRIDED;
+    LAYOUT layout = BLOCK_LINEAR_8;
 
     IMAGE *img = new IMAGE(width, height, format, layout, indata);
 
@@ -213,25 +213,43 @@ IMAGE::IMAGE(int width, int height, FORMAT format, LAYOUT layout, void *raw_data
 		{
 			size = width * height * channels_per_pixel(format) * sizeof(float);
 
-			m_pixel_data = malloc(size);
-			m_processed_pixel_data = malloc(size);
-
-			if (!m_pixel_data || !m_processed_pixel_data)
-				return;
-
-			image_proc->convert_layout(*this, CONVERT_LAYOUT_IN, raw_data);
+			break;
+		}
+		case BLOCK_LINEAR_8:
+		{
+			size = ((width + 7) & ~7U) * ((height + 7) & ~7U) * channels_per_pixel(format) * sizeof(float);
+			m_width_in_blocks = (width + 7) / 8;
 
 			break;
 		}
-
-		case BLOCK_LINEAR_8:
 		case BLOCK_LINEAR_16:
+		{
+			size = ((width + 15) & ~15U) * ((height + 15) & ~15U) * channels_per_pixel(format) * sizeof(float);
+			m_width_in_blocks = (width + 15) / 16;
+
+			break;
+		}
 		case BLOCK_LINEAR_32:
+		{
+			size = ((width + 31) & ~31U) * ((height + 31) & ~31U) * channels_per_pixel(format) * sizeof(float);
+			m_width_in_blocks = (width + 31) / 32;
+
+			break;
+		}
 		case TWIDDLED:
+		default:
 		{
 			return;
 		}
 	}
+
+	m_pixel_data = malloc(size);
+	m_processed_pixel_data = malloc(size);
+
+	if (!m_pixel_data || !m_processed_pixel_data)
+		return;
+
+	image_proc->convert_layout(*this, CONVERT_LAYOUT_IN, raw_data);
 }
 
 
@@ -243,6 +261,37 @@ int IMAGE::get_pixel_offset(int x_coord, int y_coord)
 		{
 			return (m_width * y_coord) + x_coord;
 		}
+		case BLOCK_LINEAR_8:
+		{
+			int block_x = x_coord >> 3;
+			int block_y = y_coord >> 3;
+			
+			int pixel_offset = ((m_width_in_blocks * block_y) + block_x) * (8 * 8);
+			pixel_offset += ((8 * (y_coord & 0x7)) + (x_coord & 0x7));
+
+			return pixel_offset;
+		}
+		case BLOCK_LINEAR_16:
+		{
+			int block_x = x_coord >> 4;
+			int block_y = y_coord >> 4;
+			
+			int pixel_offset = ((m_width_in_blocks * block_y) + block_x) * (16 * 16);
+			pixel_offset += ((16 * (y_coord & 0xF)) + (x_coord & 0xF));
+
+			return pixel_offset;
+		}
+		case BLOCK_LINEAR_32:
+		{
+			int block_x = x_coord >> 5;
+			int block_y = y_coord >> 5;
+			
+			int pixel_offset = ((m_width_in_blocks * block_y) + block_x) * (32 * 32);
+			pixel_offset += ((32 * (y_coord & 0x1F)) + (x_coord & 0x1F));
+
+			return pixel_offset;
+		}
+		case TWIDDLED:
 		default:
 		{
 			assert(!"Not Implemented");
