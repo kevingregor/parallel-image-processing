@@ -24,16 +24,16 @@ class CppObj(object):
         self.image_cpp = library.create_image_instance(image.ctypes.data_as(ctypes.c_void_p), ctypes.c_int(np.shape(image)[1]), ctypes.c_int(np.shape(image)[0]))
 
     def perform_filtering(self):
-        #library.perform_filtering.restype = ctypes.c_void
-        library.perform_filtering(self.image_cpp)
+        # library.perform_filtering.restype = ctypes.c_int
+        library.perform_filtering(ctypes.c_void_p(self.image_cpp))
 
     def get_processed_image(self, output):
         #library.get_processed_image.restype = ctypes.c_void
-        library.get_processed_image(self.image_cpp, output.ctypes.data_as(ctypes.c_void_p))
+        library.get_processed_image(ctypes.c_void_p(self.image_cpp), output.ctypes.data_as(ctypes.c_void_p))
 
     def destroy_image_instance(self):
         #library.destroy_image_instance.restype = ctypes.c_void
-        library.destroy_image_instance(self.image_cpp)
+        library.destroy_image_instance(ctypes.c_void_p(self.image_cpp))
 
 
 # How To Call: python ParallelImageProc.py <input_image> <image_format> <layout_tobe_used> <filter>
@@ -47,12 +47,16 @@ if __name__ == '__main__':
     """
     args = parser.parse_args()
 
-    input_img = cv2.imread(args.image_file, cv2.IMREAD_COLOR)
+    input_img = cv2.imread(args.image_file, cv2.IMREAD_COLOR).astype(np.float)
+
 
     # initializing so that the dimensions match
     processed_output = cv2.imread(args.image_file, cv2.IMREAD_COLOR)
 
     obj = CppObj(input_img) # Create the C++ IMAGE object
+
+    # print obj.image_cpp
+    # print ctypes.c_void_p(obj.image_cpp)
 
     obj.perform_filtering()
 
