@@ -9,14 +9,14 @@ IMAGE_PROC *image_proc = NULL;
 
 KERNEL *kernel = NULL;
 
-void *create_image_instance(void *indata, int r, int c)
+void *create_image_instance(void *indata, int width, int height)
 {
 	// The following two values should be input args ideally
 	// But hard-coding just for the time being
-    FORMAT format = L_8;
+    FORMAT format = RGB_888;
     LAYOUT layout = STRIDED;
 
-    IMAGE *img = new IMAGE(r, c, format, layout, indata);
+    IMAGE *img = new IMAGE(width, height, format, layout, indata);
 
 	return img;
 }
@@ -128,6 +128,57 @@ void normalize_pixel_data(void *input, float *output, FORMAT format)
 			*(output + 1) = *(reinterpret_cast<unsigned char *>(input_addr + 1)) / 255.0f;
 			*(output + 2) = *(reinterpret_cast<unsigned char *>(input_addr + 2)) / 255.0f;
 			*(output + 3) = 1.0f;
+
+			break;
+		}
+		default:
+		{
+			break;
+		}
+	}
+}
+
+
+void unnormalize_pixel_data(void *output, float *input, FORMAT format)
+{
+	uintptr_t output_addr = reinterpret_cast<uintptr_t>(output);
+
+	switch (format)
+	{
+		case L_8:
+		{
+			*(reinterpret_cast<unsigned char *>(output_addr)) = *input * 255.0f;
+
+			break;
+		}
+		case L_16:
+		{
+			*(reinterpret_cast<unsigned short *>(output_addr)) = *input * 65535.0f;
+
+			break;
+		}
+		case L_32:
+		{
+			double value = *input * 4294967295.0;
+
+			*(reinterpret_cast<unsigned int *>(output_addr))= static_cast<unsigned int>(value);
+
+			break;
+		}
+		case RGB_888:
+		{
+			*(reinterpret_cast<unsigned char *>(output_addr)) = *input * 255.0f;
+			*(reinterpret_cast<unsigned char *>(output_addr + 1)) = *(input + 1) * 255.0f;
+			*(reinterpret_cast<unsigned char *>(output_addr + 2)) = *(input + 2) * 255.0f;
+
+			break;
+		}
+		case RGBX_8888:
+		{
+			*(reinterpret_cast<unsigned char *>(output_addr)) = *input * 255.0f;
+			*(reinterpret_cast<unsigned char *>(output_addr + 1)) = *(input + 1) * 255.0f;
+			*(reinterpret_cast<unsigned char *>(output_addr + 2)) = *(input + 2) * 255.0f;
+			*(reinterpret_cast<unsigned char *>(output_addr + 3)) = 255;
 
 			break;
 		}

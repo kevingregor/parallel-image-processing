@@ -104,6 +104,8 @@ extern "C"
 
 	void normalize_pixel_data(void *input, float *output, FORMAT format);
 
+	void unnormalize_pixel_data(void *output, float *input, FORMAT format);
+
 	void *create_image_instance(void *indata,  int r, int c);
 
 	void perform_filtering(void *image_obj);

@@ -21,7 +21,7 @@ class CppObj(object):
     def __init__(self, image):
 
         library.create_image_instance.restype = ctypes.c_void_p
-        self.image_cpp = library.create_image_instance(image.ctypes.data_as(ctypes.c_void_p), ctypes.c_int(np.shape(image)[0]), ctypes.c_int(np.shape(image)[1]))
+        self.image_cpp = library.create_image_instance(image.ctypes.data_as(ctypes.c_void_p), ctypes.c_int(np.shape(image)[1]), ctypes.c_int(np.shape(image)[0]))
 
     def perform_filtering(self):
         #library.perform_filtering.restype = ctypes.c_void
