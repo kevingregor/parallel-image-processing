@@ -24,7 +24,7 @@ void *create_image_instance(void *indata, int width, int height)
 
 void perform_filtering(void *image_obj)
 {
-	IMAGE *image = (IMAGE *) (image_obj);
+	IMAGE *image = reinterpret_cast<IMAGE *>(image_obj);
 	
 	// The following two lines should be moved inside the function that takes in filtering options
 	kernel = new KERNEL(BOX_FILTER);
