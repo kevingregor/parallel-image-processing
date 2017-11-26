@@ -9,12 +9,10 @@ IMAGE_PROC *image_proc = NULL;
 
 KERNEL *kernel = NULL;
 
-void *create_image_instance(void *indata, int width, int height)
+void *create_image_instance(void *indata, int width, int height, int img_format, int img_layout)
 {
-	// The following two values should be input args ideally
-	// But hard-coding just for the time being
-    FORMAT format = RGB_888;
-    LAYOUT layout = BLOCK_LINEAR_16;
+    FORMAT format = (FORMAT) img_format;
+    LAYOUT layout = (LAYOUT) img_layout;
 
     IMAGE *img = new IMAGE(width, height, format, layout, indata);
 
@@ -22,12 +20,12 @@ void *create_image_instance(void *indata, int width, int height)
 }
 
 
-void perform_filtering(void *image_obj)
+void perform_filtering(void *image_obj, int filter)
 {
 	IMAGE *image = reinterpret_cast<IMAGE *>(image_obj);
 	
-	// The following two lines should be moved inside the function that takes in filtering options
-	kernel = new KERNEL(BOX_FILTER);
+	FILTER_TYPE filter_type = (FILTER_TYPE) filter;
+	kernel = new KERNEL(filter_type);
 
 	assert(image_proc);
 

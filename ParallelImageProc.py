@@ -17,14 +17,12 @@ library = cdll.LoadLibrary("./libimageproc.so")
 
 # Define class - This is necessary to make sure no auto garbage collection takes place
 class CppObj(object):
-
-    def __init__(self, image):
-
+    def __init__(self, image, Format, layout):
         library.create_image_instance.restype = ctypes.c_void_p
-        self.image_cpp = library.create_image_instance(image.ctypes.data_as(ctypes.c_void_p), ctypes.c_int(np.shape(image)[1]), ctypes.c_int(np.shape(image)[0]))
+        self.image_cpp = library.create_image_instance(image.ctypes.data_as(ctypes.c_void_p), ctypes.c_int(np.shape(image)[1]), ctypes.c_int(np.shape(image)[0]), Format, layout)
 
-    def perform_filtering(self):
-        library.perform_filtering(ctypes.c_void_p(self.image_cpp))
+    def perform_filtering(self, Filter):
+        library.perform_filtering(ctypes.c_void_p(self.image_cpp), Filter)
 
     def get_processed_image(self, output):
         library.get_processed_image(ctypes.c_void_p(self.image_cpp), output.ctypes.data_as(ctypes.c_void_p))
@@ -32,16 +30,56 @@ class CppObj(object):
     def destroy_image_instance(self):
         library.destroy_image_instance(ctypes.c_void_p(self.image_cpp))
 
+# Mimic the enum for FORMAT
+def matchFormat(Format):
+    if Format == "L8":
+        return ctypes.c_int(0)
+    elif Format == "L16":
+        return ctypes.c_int(1)
+    elif Format == "L32":
+        return ctypes.c_int(2)
+    elif Format == "RGB888":
+        return ctypes.c_int(3)
+    elif Format == "RGBX8888":
+        return ctypes.c_int(4)
+    else:
+        return ctypes.c_int(-1)
+
+# Mimic the enum for LAYOUT
+def matchLayout(layout):
+    if layout == "STRIDED":
+        return ctypes.c_int(0)
+    elif layout == "BLOCK_LINEAR_8":
+        return ctypes.c_int(1)
+    elif layout == "BLOCK_LINEAR_16":
+        return ctypes.c_int(2)
+    elif layout == "BLOCK_LINEAR_32":
+        return ctypes.c_int(3)
+    elif layout == "TWIDDLED":
+        return ctypes.c_int(4)
+    else:
+        return ctypes.c_int(-1)
+
+# Mimic the enum for FILTER_TYPE
+def matchFilter(Filter):
+    if Filter == "BOX_FILTER":
+        return ctypes.c_int(0)
+    elif Filter == "GAUSSIAN_BLUR":
+        return ctypes.c_int(1)
+    elif Filter == "EDGE_DETECT":
+        return ctypes.c_int(2)
+    else:
+        return ctypes.c_int(-1)
+
 
 # How To Call: python ParallelImageProc.py <input_image> <image_format> <layout_tobe_used> <filter>
+# Example: python ParallelImageProc.py img.jpg L8 STRIDED BOX_FILTER
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Parallel Image Processing')
     parser.add_argument('image_file', help='Image File')
-    """
     parser.add_argument('image_format', help='Image Format (RGB888, L8, etc)')
     parser.add_argument('layout_tobe_used', help='Memory Layout to be used')
     parser.add_argument('filter', help='Filter to be used')
-    """
     args = parser.parse_args()
 
     input_img = cv2.imread(args.image_file, cv2.IMREAD_COLOR)
@@ -49,9 +87,9 @@ if __name__ == '__main__':
     # initializing so that the dimensions match
     processed_output = cv2.imread(args.image_file, cv2.IMREAD_COLOR)
 
-    obj = CppObj(input_img) # Create the C++ IMAGE object
+    obj = CppObj(input_img, matchFormat(args.image_format), matchLayout(args.layout_tobe_used)) # Create the C++ IMAGE object
 
-    obj.perform_filtering()
+    obj.perform_filtering(matchFilter(args.filter))
 
     obj.get_processed_image(processed_output)
 
