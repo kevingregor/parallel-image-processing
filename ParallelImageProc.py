@@ -1,8 +1,9 @@
 import ctypes
 from ctypes import cdll
 import numpy as np
-import cv2
+# import cv2
 import argparse
+from PIL import Image
 
 # Mac OS X
 #stdc = cdll.LoadLibrary("libc.dylib")
@@ -83,19 +84,21 @@ if __name__ == '__main__':
     parser.add_argument('filter', help='Filter to be used')
     args = parser.parse_args()
 
-    input_img = cv2.imread(args.image_file, cv2.IMREAD_COLOR)
+    img = Image.open(args.image_file)
+    input_img = np.array(img)
+    input_img = input_img[:,:,::-1]
 
     # initializing so that the dimensions match
-    processed_output = cv2.imread(args.image_file, cv2.IMREAD_COLOR)
+    processed_output = np.array(img)
+    processed_output = processed_output[:,:,::-1]
 
     obj = CppObj(input_img, matchFormat(args.image_format), matchLayout(args.layout_tobe_used)) # Create the C++ IMAGE object
 
     time = obj.perform_filtering(matchFilter(args.filter))
-    print time
 
     obj.get_processed_image(processed_output)
 
     obj.destroy_image_instance()
 
-    cv2.imwrite('processed' + args.image_file, processed_output) # Save output image
-
+    processed_output = processed_output[:,:,::-1]
+    Image.fromarray(processed_output).save('processed' + args.image_file)
