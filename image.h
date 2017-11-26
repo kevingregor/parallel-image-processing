@@ -64,6 +64,12 @@ extern "C"
 		// Memory Layout of the Pixels
 		LAYOUT        m_layout;
 
+		// Image Width rounded off to the next power of 2
+		int           m_width_pow2;
+
+		// Image Height rounded off to the next power of 2
+		int           m_height_pow2;
+
 		// Number of Blocks along the width
 		// Applicable for the Block_Linear Layout
 		int           m_width_in_blocks;

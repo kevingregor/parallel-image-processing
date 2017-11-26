@@ -14,7 +14,7 @@ void *create_image_instance(void *indata, int width, int height)
 	// The following two values should be input args ideally
 	// But hard-coding just for the time being
     FORMAT format = RGB_888;
-    LAYOUT layout = BLOCK_LINEAR_8;
+    LAYOUT layout = BLOCK_LINEAR_16;
 
     IMAGE *img = new IMAGE(width, height, format, layout, indata);
 
@@ -237,6 +237,31 @@ IMAGE::IMAGE(int width, int height, FORMAT format, LAYOUT layout, void *raw_data
 			break;
 		}
 		case TWIDDLED:
+		{
+			if (width & (width - 1))
+			{
+				// Round off to next pow2 if width is not a pow2
+				for (m_width_pow2 = 1; width; m_width_pow2 <<= 1, width >>= 1);
+			}
+			else
+			{
+				m_width_pow2 = width;
+			}
+
+			if (height & (height - 1))
+			{
+				// Round off to next pow2 if height is not a pow2
+				for (m_height_pow2 = 1; height; m_height_pow2 <<= 1, height >>= 1);
+			}
+			else
+			{
+				m_height_pow2 = height;
+			}
+
+			size = m_width_pow2 * m_height_pow2 * channels_per_pixel(format) * sizeof(float);
+
+			break;
+		}
 		default:
 		{
 			return;
@@ -292,9 +317,34 @@ int IMAGE::get_pixel_offset(int x_coord, int y_coord)
 			return pixel_offset;
 		}
 		case TWIDDLED:
+		{
+			int pixel_offset = 0;
+			int w = m_width_pow2;
+			int h = m_height_pow2;
+
+			while (w && h)
+			{
+				w >>= 1;
+				h >>= 1;
+
+				if (x_coord > w)
+				{
+					x_coord -= w;
+					pixel_offset += (2 * w * h);
+				}
+
+				if (y_coord > h)
+				{
+					y_coord -= h;
+					pixel_offset += (w * h);
+				}
+			}
+
+			return pixel_offset;
+		}
 		default:
 		{
-			assert(!"Not Implemented");
+			assert(!"Invalid LAYOUT !");
 		}
 	}
 
