@@ -20,7 +20,7 @@ void *create_image_instance(void *indata, int width, int height, int img_format,
 }
 
 
-void perform_filtering(void *image_obj, int filter)
+double perform_filtering(void *image_obj, int filter)
 {
 	IMAGE *image = reinterpret_cast<IMAGE *>(image_obj);
 	
@@ -29,7 +29,7 @@ void perform_filtering(void *image_obj, int filter)
 
 	assert(image_proc);
 
-	image_proc->convolve(*image, *kernel);
+	return image_proc->convolve(*image, *kernel);
 }
 
 

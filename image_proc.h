@@ -6,6 +6,7 @@
 //
 
 #include "image.h"
+#include <omp.h>
 
 # if !defined(IMAGE_PROC_H)
 
@@ -57,7 +58,7 @@ extern "C"
 
 		IMAGE_PROC(){}
 
-		bool convolve(IMAGE& image, KERNEL& kernel);
+		double convolve(IMAGE& image, KERNEL& kernel);
 
 		bool convert_layout(IMAGE &image, LAYOUT_CONVERSION_DIRECTION direction, void *raw_data);
 	};

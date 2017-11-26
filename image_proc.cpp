@@ -30,8 +30,10 @@ KERNEL::KERNEL(FILTER_TYPE filter_type)
 }
 
 
-bool IMAGE_PROC::convolve(IMAGE& image, KERNEL& kernel)
+double IMAGE_PROC::convolve(IMAGE& image, KERNEL& kernel)
 {
+	double start_time = omp_get_wtime();
+
 	int image_width = image.get_image_width();
 	int image_height = image.get_image_height();
 	FORMAT image_format = image.get_image_format();
@@ -75,6 +77,9 @@ bool IMAGE_PROC::convolve(IMAGE& image, KERNEL& kernel)
 			}
 		}
 	}
+
+	double time = omp_get_wtime() - start_time;
+	return time;
 }
 
 
