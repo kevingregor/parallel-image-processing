@@ -1,0 +1,26 @@
+#!/bin/sh
+
+# We only need a single processor to print hello, so ppn=1.
+# A modest timeout of 1 minute is used, which should be
+# plenty of time for this job to complete.
+
+#PBS -l nodes=1:ppn=1
+#PBS -l walltime=0:01:00
+#PBS -N image_proc
+#PBS -j oe
+
+cd "$PBS_O_WORKDIR"
+module load anaconda;
+
+# Run the executable.
+python ParallelImageProc.py earth.jpg RGB888 STRIDED BOX_FILTER 
+python ParallelImageProc.py earth.jpg RGB888 BLOCK_LINEAR_8 BOX_FILTER 
+python ParallelImageProc.py earth.jpg RGB888 BLOCK_LINEAR_16 BOX_FILTER 
+python ParallelImageProc.py earth.jpg RGB888 BLOCK_LINEAR_32 BOX_FILTER 
+python ParallelImageProc.py earth.jpg RGB888 TWIDDLED BOX_FILTER
+
+python ParallelImageProc.py fruit.jpg RGB888 STRIDED BOX_FILTER
+python ParallelImageProc.py fruit.jpg RGB888 BLOCK_LINEAR_8 BOX_FILTER
+python ParallelImageProc.py fruit.jpg RGB888 BLOCK_LINEAR_16 BOX_FILTER
+python ParallelImageProc.py fruit.jpg RGB888 BLOCK_LINEAR_32 BOX_FILTER
+python ParallelImageProc.py fruit.jpg RGB888 TWIDDLED BOX_FILTER

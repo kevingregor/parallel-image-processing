@@ -1,7 +1,10 @@
 
 CXX = g++
-CXX_FLAGS = -g -fPIC -fopenmp
+
+CXX_FLAGS = -O3 -fPIC -fopenmp
+
 LINK_FLAGS = -shared
+
 
 all : libimageproc.so
 
