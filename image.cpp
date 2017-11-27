@@ -1,8 +1,6 @@
 
 #include "image.h"
 #include "image_proc.h"
-#include <stdio.h>
-#include <string.h> 
 
 
 IMAGE_PROC *image_proc = NULL;
@@ -320,22 +318,31 @@ int IMAGE::get_pixel_offset(int x_coord, int y_coord)
 			int w = m_width_pow2;
 			int h = m_height_pow2;
 
-			while (w && h)
+			while ((w > 1) && (h > 1))
 			{
 				w >>= 1;
 				h >>= 1;
 
-				if (x_coord > w)
+				if (x_coord >= w)
 				{
 					x_coord -= w;
 					pixel_offset += (2 * w * h);
 				}
 
-				if (y_coord > h)
+				if (y_coord >= h)
 				{
 					y_coord -= h;
 					pixel_offset += (w * h);
 				}
+			}
+
+			if (w > 1)
+			{
+				pixel_offset += x_coord;
+			}
+			else if (h > 1)
+			{
+				pixel_offset += y_coord;
 			}
 
 			return pixel_offset;
