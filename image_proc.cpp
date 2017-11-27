@@ -1,6 +1,6 @@
 
 #include "image_proc.h"
-
+#include <omp.h>
 
 KERNEL::KERNEL(FILTER_TYPE filter_type)
 {

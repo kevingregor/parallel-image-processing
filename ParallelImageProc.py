@@ -24,7 +24,7 @@ class CppObj(object):
 
     def perform_filtering(self, Filter):
         library.perform_filtering.restype = ctypes.c_double
-        library.perform_filtering(ctypes.c_void_p(self.image_cpp), Filter)
+        return library.perform_filtering(ctypes.c_void_p(self.image_cpp), Filter)
 
     def get_processed_image(self, output):
         library.get_processed_image(ctypes.c_void_p(self.image_cpp), output.ctypes.data_as(ctypes.c_void_p))
@@ -93,8 +93,14 @@ if __name__ == '__main__':
     processed_output = processed_output[:,:,::-1]
 
     obj = CppObj(input_img, matchFormat(args.image_format), matchLayout(args.layout_tobe_used)) # Create the C++ IMAGE object
+    
+    total_time = 0.0
+    num_iters = 10
+    for i in range(num_iters):
+        time = obj.perform_filtering(matchFilter(args.filter))
+        total_time += time
 
-    time = obj.perform_filtering(matchFilter(args.filter))
+    print (total_time / num_iters)
 
     obj.get_processed_image(processed_output)
 
