@@ -37,7 +37,15 @@ KERNEL::KERNEL(FILTER_TYPE filter_type)
 		}
 		case EDGE_DETECT:
 		{
-			assert(!"Not Yet Implemented");
+			h_00 = 1.0f / 4.0f;
+			h_01 = 1.0f / 2.0f;
+			h_02 = 1.0f / 4.0f;
+			h_10 = 1.0f / 2.0f;
+			h_11 = -3.0f;
+			h_12 = 1.0f / 2.0f;
+			h_20 = 1.0f / 4.0f;
+			h_21 = 1.0f / 2.0f;
+			h_22 = 1.0f / 4.0f;
 
 			break;
 		}
@@ -93,6 +101,12 @@ double IMAGE_PROC::convolve(IMAGE& image, KERNEL& kernel)
 				result += *(reinterpret_cast<float *>(pixel_data + pixel_offset_20 + (channel * sizeof(float)))) * kernel.h_20;
 				result += *(reinterpret_cast<float *>(pixel_data + pixel_offset_21 + (channel * sizeof(float)))) * kernel.h_21;
 				result += *(reinterpret_cast<float *>(pixel_data + pixel_offset_22 + (channel * sizeof(float)))) * kernel.h_22;
+
+				// Clamp the result in the range (0.0, 1.0)
+				if (result < 0.0f)
+					result = 0.0f;
+				else if (result > 1.0f)
+					result = 1.0f;
 
 				*(reinterpret_cast<float *>(output_pixel_data + pixel_offset_11 + (channel * sizeof(float)))) = result;
 			}
