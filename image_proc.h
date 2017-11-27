@@ -6,7 +6,6 @@
 //
 
 #include "image.h"
-#include <omp.h>
 
 # if !defined(IMAGE_PROC_H)
 

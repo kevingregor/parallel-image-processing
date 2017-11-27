@@ -2,6 +2,7 @@
 #include "image_proc.h"
 #include <omp.h>
 
+
 KERNEL::KERNEL(FILTER_TYPE filter_type)
 {
 	switch (filter_type)
@@ -20,9 +21,29 @@ KERNEL::KERNEL(FILTER_TYPE filter_type)
 
 			break;
 		}
-		default:
+		case GAUSSIAN_BLUR:
+		{
+			h_00 = 1.0f / 16.0f;
+			h_01 = 1.0f / 8.0f;
+			h_02 = 1.0f / 16.0f;
+			h_10 = 1.0f / 8.0f;
+			h_11 = 1.0f / 4.0f;
+			h_12 = 1.0f / 8.0f;
+			h_20 = 1.0f / 16.0f;
+			h_21 = 1.0f / 8.0f;
+			h_22 = 1.0f / 16.0f;
+
+			break;
+		}
+		case EDGE_DETECT:
 		{
 			assert(!"Not Yet Implemented");
+
+			break;
+		}
+		default:
+		{
+			assert(!"Invalid Filter Type !");
 
 			break;
 		}
