@@ -17,4 +17,10 @@ python ParallelImageProc.py earth.jpg RGB888 STRIDED BOX_FILTER
 python ParallelImageProc.py earth.jpg RGB888 BLOCK_LINEAR_8 BOX_FILTER 
 python ParallelImageProc.py earth.jpg RGB888 BLOCK_LINEAR_16 BOX_FILTER 
 python ParallelImageProc.py earth.jpg RGB888 BLOCK_LINEAR_32 BOX_FILTER 
-python ParallelImageProc.py earth.jpg RGB888 TWIDDLED BOX_FILTER 
+python ParallelImageProc.py earth.jpg RGB888 TWIDDLED BOX_FILTER
+
+python ParallelImageProc.py fruit.jpg RGB888 STRIDED BOX_FILTER
+python ParallelImageProc.py fruit.jpg RGB888 BLOCK_LINEAR_8 BOX_FILTER
+python ParallelImageProc.py fruit.jpg RGB888 BLOCK_LINEAR_16 BOX_FILTER
+python ParallelImageProc.py fruit.jpg RGB888 BLOCK_LINEAR_32 BOX_FILTER
+python ParallelImageProc.py fruit.jpg RGB888 TWIDDLED BOX_FILTER

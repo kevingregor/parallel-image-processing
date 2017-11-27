@@ -100,7 +100,7 @@ if __name__ == '__main__':
         time = obj.perform_filtering(matchFilter(args.filter))
         total_time += time
 
-    print (args.layout_tobe_used + " " + args.filter + ": " + str(total_time / num_iters))
+    print (args.image_file + " - " + args.layout_tobe_used + " " + args.filter + ": " + str(total_time / num_iters))
 
     obj.get_processed_image(processed_output)
 
