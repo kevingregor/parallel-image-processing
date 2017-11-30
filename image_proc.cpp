@@ -90,7 +90,7 @@ void IMAGE_PROC::process_chunk(IMAGE &image, int chunk_x, int chunk_y, KERNEL& k
 			
 			for (int i = -1; i<=1; i++) {
 				for (int j = -1; j<=1; j++) {
-					pixel_offsets[3*(i+1) + (j+1)] = bpp * image.get_pixel_offset(j, i);
+					pixel_offsets[3*(i+1) + (j+1)] = bpp * image.get_pixel_offset(x_coord + j, y_coord + i);
 				}
 			}
 
