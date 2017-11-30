@@ -135,8 +135,8 @@ void IMAGE_PROC::process_chunk(IMAGE &image, int chunk_x, int chunk_y, KERNEL& k
 
 double IMAGE_PROC::convolve(IMAGE& image, KERNEL& kernel)
 {
-	num_chunks_x = 10;
-	num_chunks_y = 10;
+	num_chunks_x = 4;
+	num_chunks_y = 4;
 
 	int image_width = image.get_image_width();
 	int image_height = image.get_image_height();
