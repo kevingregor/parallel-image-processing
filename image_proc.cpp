@@ -71,7 +71,8 @@ double IMAGE_PROC::convolve(IMAGE& image, KERNEL& kernel)
 	void *image_pixel_data = image.get_image_pixel_data();
 	void *image_processed_pixel_data = image.get_image_processed_pixel_data();
 	
-	#pragma omp parallel for
+	int pixel_offsets[9];
+	
 	for (int y_coord = 1; y_coord < (image_height - 1); y_coord++)
 	{
 		for (int x_coord = 1; x_coord < (image_width - 1); x_coord++)
@@ -80,29 +81,35 @@ double IMAGE_PROC::convolve(IMAGE& image, KERNEL& kernel)
 			uintptr_t pixel_data = reinterpret_cast<uintptr_t>(image_pixel_data);
 			uintptr_t output_pixel_data = reinterpret_cast<uintptr_t>(image_processed_pixel_data);
 			
-			int pixel_offset_00 = bpp * image.get_pixel_offset(x_coord - 1, y_coord - 1);
-			int pixel_offset_01 = bpp * image.get_pixel_offset(x_coord, y_coord - 1);
-			int pixel_offset_02 = bpp * image.get_pixel_offset(x_coord + 1, y_coord - 1);
-			int pixel_offset_10 = bpp * image.get_pixel_offset(x_coord - 1, y_coord);
-			int pixel_offset_11 = bpp * image.get_pixel_offset(x_coord, y_coord);
-			int pixel_offset_12 = bpp * image.get_pixel_offset(x_coord + 1, y_coord);
-			int pixel_offset_20 = bpp * image.get_pixel_offset(x_coord - 1, y_coord + 1);
-			int pixel_offset_21 = bpp * image.get_pixel_offset(x_coord, y_coord + 1);
-			int pixel_offset_22 = bpp * image.get_pixel_offset(x_coord + 1, y_coord + 1);
+			for (int i = -1; i<=1; i++) {
+				for (int j = -1; j<=1; j++) {
+					pixel_offsets[3*(i+1) + (j+1)] = bpp * image.get_pixel_offset(j, i);
+				}
+			}
+
+			// int pixel_offset_00 = bpp * image.get_pixel_offset(x_coord - 1, y_coord - 1);
+			// int pixel_offset_01 = bpp * image.get_pixel_offset(x_coord, y_coord - 1);
+			// int pixel_offset_02 = bpp * image.get_pixel_offset(x_coord + 1, y_coord - 1);
+			// int pixel_offset_10 = bpp * image.get_pixel_offset(x_coord - 1, y_coord);
+			// int pixel_offset_11 = bpp * image.get_pixel_offset(x_coord, y_coord);
+			// int pixel_offset_12 = bpp * image.get_pixel_offset(x_coord + 1, y_coord);
+			// int pixel_offset_20 = bpp * image.get_pixel_offset(x_coord - 1, y_coord + 1);
+			// int pixel_offset_21 = bpp * image.get_pixel_offset(x_coord, y_coord + 1);
+			// int pixel_offset_22 = bpp * image.get_pixel_offset(x_coord + 1, y_coord + 1);
 
 			for (int channel = 0; channel < channels_per_pixel(image_format); channel++)
 			{
 				float result = 0.0f;
 
-				result += *(reinterpret_cast<float *>(pixel_data + pixel_offset_00 + (channel * sizeof(float)))) * kernel.h_00;
-				result += *(reinterpret_cast<float *>(pixel_data + pixel_offset_01 + (channel * sizeof(float)))) * kernel.h_01;
-				result += *(reinterpret_cast<float *>(pixel_data + pixel_offset_02 + (channel * sizeof(float)))) * kernel.h_02;
-				result += *(reinterpret_cast<float *>(pixel_data + pixel_offset_10 + (channel * sizeof(float)))) * kernel.h_10;
-				result += *(reinterpret_cast<float *>(pixel_data + pixel_offset_11 + (channel * sizeof(float)))) * kernel.h_11;
-				result += *(reinterpret_cast<float *>(pixel_data + pixel_offset_12 + (channel * sizeof(float)))) * kernel.h_12;
-				result += *(reinterpret_cast<float *>(pixel_data + pixel_offset_20 + (channel * sizeof(float)))) * kernel.h_20;
-				result += *(reinterpret_cast<float *>(pixel_data + pixel_offset_21 + (channel * sizeof(float)))) * kernel.h_21;
-				result += *(reinterpret_cast<float *>(pixel_data + pixel_offset_22 + (channel * sizeof(float)))) * kernel.h_22;
+				result += *(reinterpret_cast<float *>(pixel_data + pixel_offset[0] + (channel * sizeof(float)))) * kernel.h_00;
+				result += *(reinterpret_cast<float *>(pixel_data + pixel_offset[1] + (channel * sizeof(float)))) * kernel.h_01;
+				result += *(reinterpret_cast<float *>(pixel_data + pixel_offset[2] + (channel * sizeof(float)))) * kernel.h_02;
+				result += *(reinterpret_cast<float *>(pixel_data + pixel_offset[3] + (channel * sizeof(float)))) * kernel.h_10;
+				result += *(reinterpret_cast<float *>(pixel_data + pixel_offset[4] + (channel * sizeof(float)))) * kernel.h_11;
+				result += *(reinterpret_cast<float *>(pixel_data + pixel_offset[5] + (channel * sizeof(float)))) * kernel.h_12;
+				result += *(reinterpret_cast<float *>(pixel_data + pixel_offset[6] + (channel * sizeof(float)))) * kernel.h_20;
+				result += *(reinterpret_cast<float *>(pixel_data + pixel_offset[7] + (channel * sizeof(float)))) * kernel.h_21;
+				result += *(reinterpret_cast<float *>(pixel_data + pixel_offset[8] + (channel * sizeof(float)))) * kernel.h_22;
 
 				// Clamp the result in the range (0.0, 1.0)
 				if (result < 0.0f)
