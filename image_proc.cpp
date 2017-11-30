@@ -146,11 +146,15 @@ double IMAGE_PROC::convolve(IMAGE& image, KERNEL& kernel)
 
 	double start_time = omp_get_wtime();
 
-	for (int chunk_y = 0; chunk_y < num_chunks_y; chunk_y++)
+	#pragma omp parallel
 	{
-		for (int chunk_x = 0; chunk_x < num_chunks_x; chunk_x++)
+		for (int chunk_y = 0; chunk_y < num_chunks_y; chunk_y++)
 		{
-			process_chunk(image, chunk_x, chunk_y, kernel);
+			for (int chunk_x = 0; chunk_x < num_chunks_x; chunk_x++)
+			{
+				#pragma omp task
+				process_chunk(image, chunk_x, chunk_y, kernel);
+			}
 		}
 	}
 
