@@ -59,23 +59,29 @@ KERNEL::KERNEL(FILTER_TYPE filter_type)
 }
 
 
-double IMAGE_PROC::convolve(IMAGE& image, KERNEL& kernel)
+void IMAGE_PROC::process_chunk(IMAGE &image, int chunk_x, int chunk_y, KERNEL& kernel)
 {
-
-	double start_time = omp_get_wtime();
-
 	int image_width = image.get_image_width();
 	int image_height = image.get_image_height();
 	FORMAT image_format = image.get_image_format();
 	LAYOUT image_layout = image.get_image_layout();
 	void *image_pixel_data = image.get_image_pixel_data();
 	void *image_processed_pixel_data = image.get_image_processed_pixel_data();
-	
-	#pragma omp parallel for
-	for (int y_coord = 1; y_coord < (image_height - 1); y_coord++)
+
+	int x_start = chunk_x * chunk_width;
+	int y_start = chunk_y * chunk_height;
+
+	//#pragma omp parallel for
+	for (int y_coord = y_start; y_coord < (y_start + chunk_height); y_coord++)
 	{
-		for (int x_coord = 1; x_coord < (image_width - 1); x_coord++)
+		for (int x_coord = x_start; x_coord < (x_start + chunk_width); x_coord++)
 		{
+			if ((x_coord < 1) || (x_coord > (image_width - 2)) ||
+				(y_coord < 1) || (y_coord > (image_height - 2)))
+			{
+				continue;
+			}
+
 			int bpp = channels_per_pixel(image_format) * sizeof(float);
 			uintptr_t pixel_data = reinterpret_cast<uintptr_t>(image_pixel_data);
 			uintptr_t output_pixel_data = reinterpret_cast<uintptr_t>(image_processed_pixel_data);
@@ -114,8 +120,32 @@ double IMAGE_PROC::convolve(IMAGE& image, KERNEL& kernel)
 			}
 		}
 	}
+}
+
+
+double IMAGE_PROC::convolve(IMAGE& image, KERNEL& kernel)
+{
+	num_chunks_x = 10;
+	num_chunks_y = 10;
+
+	int image_width = image.get_image_width();
+	int image_height = image.get_image_height();
+
+	chunk_width = (image_width + (num_chunks_x - 1)) / num_chunks_x;
+	chunk_height = (image_height + (num_chunks_y - 1)) / num_chunks_y;
+
+	double start_time = omp_get_wtime();
+
+	for (int chunk_y = 0; chunk_y < num_chunks_y; chunk_y++)
+	{
+		for (int chunk_x = 0; chunk_x < num_chunks_x; chunk_x++)
+		{
+			process_chunk(image, chunk_x, chunk_y, kernel);
+		}
+	}
 
 	double time = omp_get_wtime() - start_time;
+
 	return time;
 }
 

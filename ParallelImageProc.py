@@ -100,7 +100,7 @@ if __name__ == '__main__':
             total_time = 0.0
             num_iters = 10
             for i in range(num_iters):
-                time = obj.perform_filtering(matchFilter(args.filter))
+                time = obj.perform_filtering(matchFilter(Filter))
                 total_time += time
 
             toPrint += (Filter + " " + layout+ ": " + str(total_time/num_iters) + "\n")
@@ -110,4 +110,8 @@ if __name__ == '__main__':
             obj.destroy_image_instance()
 
             processed_output = processed_output[:,:,::-1]
-    # Image.fromarray(processed_output).save('processed' + args.image_file)
+
+            Image.fromarray(processed_output).save('processed_' + Filter + '_' + layout + '_' + args.image_file)
+
+    print toPrint
+

@@ -53,6 +53,13 @@ extern "C"
 
 	class IMAGE_PROC
 	{
+		private:
+
+		int chunk_width;
+		int chunk_height;
+		int num_chunks_x;
+		int num_chunks_y;
+
 		public:
 
 		IMAGE_PROC(){}
@@ -60,6 +67,8 @@ extern "C"
 		double convolve(IMAGE& image, KERNEL& kernel);
 
 		bool convert_layout(IMAGE &image, LAYOUT_CONVERSION_DIRECTION direction, void *raw_data);
+
+		void process_chunk(IMAGE& image, int chunk_x, int chunk_y, KERNEL& kernel);
 	};
 }
 
