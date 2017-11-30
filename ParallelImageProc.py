@@ -79,32 +79,35 @@ def matchFilter(Filter):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Parallel Image Processing')
     parser.add_argument('image_file', help='Image File')
-    parser.add_argument('image_format', help='Image Format (RGB888, L8, etc)')
-    parser.add_argument('layout_tobe_used', help='Memory Layout to be used')
-    parser.add_argument('filter', help='Filter to be used')
+    # parser.add_argument('image_format', help='Image Format (RGB888, L8, etc)')
+    # parser.add_argument('layout_tobe_used', help='Memory Layout to be used')
+    # parser.add_argument('filter', help='Filter to be used')
     args = parser.parse_args()
 
-    img = Image.open(args.image_file)
-    input_img = np.array(img)
-    input_img = input_img[:,:,::-1]
+    toPrint = "\n" + args.image_file + ":\n"
+    for Filter in ["BOX_FILTER", "GAUSSIAN_BLUR", "EDGE_DETECT"]:
+        for layout in ["STRIDED", 'BLOCK_LINEAR_8', 'BLOCK_LINEAR_16', 'BLOCK_LINEAR_32', 'TWIDDLED']:
+            img = Image.open(args.image_file)
+            input_img = np.array(img)
+            input_img = input_img[:,:,::-1]
 
-    # initializing so that the dimensions match
-    processed_output = np.array(img)
-    processed_output = processed_output[:,:,::-1]
+            # initializing so that the dimensions match
+            processed_output = np.array(img)
+            processed_output = processed_output[:,:,::-1]
 
-    
-    total_time = 0.0
-    num_iters = 5
-    for i in range(num_iters):
-        obj = CppObj(input_img, matchFormat(args.image_format), matchLayout(args.layout_tobe_used)) # Create the C++ IMAGE object
-        time = obj.perform_filtering(matchFilter(args.filter))
-        total_time += time
-        obj.get_processed_image(processed_output)
-        obj.destroy_image_instance()
+            obj = CppObj(input_img, matchFormat("RGB888"), matchLayout(layout)) # Create the C++ IMAGE object
+            
+            total_time = 0.0
+            num_iters = 10
+            for i in range(num_iters):
+                time = obj.perform_filtering(matchFilter(args.filter))
+                total_time += time
 
-    print (args.image_file + " - " + args.layout_tobe_used + " " + args.filter + ": " + str(total_time/num_iters))
+            toPrint += (Filter + " " + layout+ ": " + str(total_time/num_iters) + "\n")
 
+            obj.get_processed_image(processed_output)
 
+            obj.destroy_image_instance()
 
-    processed_output = processed_output[:,:,::-1]
-    Image.fromarray(processed_output).save('processed' + args.image_file)
+            processed_output = processed_output[:,:,::-1]
+    # Image.fromarray(processed_output).save('processed' + args.image_file)

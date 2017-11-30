@@ -14,26 +14,10 @@ module load anaconda;
 export OMP_NUM_THREADS=8;
 
 # Run the executable.
-python ParallelImageProc.py earth.jpg RGB888 STRIDED BOX_FILTER 
-python ParallelImageProc.py earth.jpg RGB888 BLOCK_LINEAR_8 BOX_FILTER 
-python ParallelImageProc.py earth.jpg RGB888 BLOCK_LINEAR_16 BOX_FILTER 
-python ParallelImageProc.py earth.jpg RGB888 BLOCK_LINEAR_32 BOX_FILTER 
-python ParallelImageProc.py earth.jpg RGB888 TWIDDLED BOX_FILTER
+python ParallelImageProc.py earth.jpg
 
-python ParallelImageProc.py fruit.jpg RGB888 STRIDED BOX_FILTER
-python ParallelImageProc.py fruit.jpg RGB888 BLOCK_LINEAR_8 BOX_FILTER
-python ParallelImageProc.py fruit.jpg RGB888 BLOCK_LINEAR_16 BOX_FILTER
-python ParallelImageProc.py fruit.jpg RGB888 BLOCK_LINEAR_32 BOX_FILTER
-python ParallelImageProc.py fruit.jpg RGB888 TWIDDLED BOX_FILTER
+python ParallelImageProc.py fruit.jpg
 
-python ParallelImageProc.py sun.jpeg RGB888 STRIDED BOX_FILTER
-python ParallelImageProc.py sun.jpeg RGB888 BLOCK_LINEAR_8 BOX_FILTER
-python ParallelImageProc.py sun.jpeg RGB888 BLOCK_LINEAR_16 BOX_FILTER
-python ParallelImageProc.py sun.jpeg RGB888 BLOCK_LINEAR_32 BOX_FILTER
-python ParallelImageProc.py sun.jpeg RGB888 TWIDDLED BOX_FILTER
+python ParallelImageProc.py sun.jpeg
 
-python ParallelImageProc.py money.png RGB888 STRIDED BOX_FILTER
-python ParallelImageProc.py money.png RGB888 BLOCK_LINEAR_8 BOX_FILTER
-python ParallelImageProc.py money.png RGB888 BLOCK_LINEAR_16 BOX_FILTER
-python ParallelImageProc.py money.png RGB888 BLOCK_LINEAR_32 BOX_FILTER
-python ParallelImageProc.py money.png RGB888 TWIDDLED BOX_FILTER
+python ParallelImageProc.py money.png
