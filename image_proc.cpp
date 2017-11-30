@@ -61,6 +61,7 @@ KERNEL::KERNEL(FILTER_TYPE filter_type)
 
 double IMAGE_PROC::convolve(IMAGE& image, KERNEL& kernel)
 {
+
 	double start_time = omp_get_wtime();
 
 	int image_width = image.get_image_width();
@@ -69,7 +70,8 @@ double IMAGE_PROC::convolve(IMAGE& image, KERNEL& kernel)
 	LAYOUT image_layout = image.get_image_layout();
 	void *image_pixel_data = image.get_image_pixel_data();
 	void *image_processed_pixel_data = image.get_image_processed_pixel_data();
-
+	
+	#pragma omp parallel for
 	for (int y_coord = 1; y_coord < (image_height - 1); y_coord++)
 	{
 		for (int x_coord = 1; x_coord < (image_width - 1); x_coord++)
@@ -77,7 +79,7 @@ double IMAGE_PROC::convolve(IMAGE& image, KERNEL& kernel)
 			int bpp = channels_per_pixel(image_format) * sizeof(float);
 			uintptr_t pixel_data = reinterpret_cast<uintptr_t>(image_pixel_data);
 			uintptr_t output_pixel_data = reinterpret_cast<uintptr_t>(image_processed_pixel_data);
-
+			
 			int pixel_offset_00 = bpp * image.get_pixel_offset(x_coord - 1, y_coord - 1);
 			int pixel_offset_01 = bpp * image.get_pixel_offset(x_coord, y_coord - 1);
 			int pixel_offset_02 = bpp * image.get_pixel_offset(x_coord + 1, y_coord - 1);

@@ -92,19 +92,19 @@ if __name__ == '__main__':
     processed_output = np.array(img)
     processed_output = processed_output[:,:,::-1]
 
-    obj = CppObj(input_img, matchFormat(args.image_format), matchLayout(args.layout_tobe_used)) # Create the C++ IMAGE object
     
     total_time = 0.0
-    num_iters = 10
+    num_iters = 5
     for i in range(num_iters):
+        obj = CppObj(input_img, matchFormat(args.image_format), matchLayout(args.layout_tobe_used)) # Create the C++ IMAGE object
         time = obj.perform_filtering(matchFilter(args.filter))
         total_time += time
+        obj.get_processed_image(processed_output)
+        obj.destroy_image_instance()
 
-    print (args.image_file + " - " + args.layout_tobe_used + " " + args.filter + ": " + str(total_time / num_iters))
+    print (args.image_file + " - " + args.layout_tobe_used + " " + args.filter + ": " + str(total_time/num_iters))
 
-    obj.get_processed_image(processed_output)
 
-    obj.destroy_image_instance()
 
     processed_output = processed_output[:,:,::-1]
     Image.fromarray(processed_output).save('processed' + args.image_file)
