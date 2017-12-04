@@ -72,6 +72,7 @@ void IMAGE_PROC::process_chunk(IMAGE &image, int chunk_x, int chunk_y, KERNEL& k
 	int y_start = chunk_y * chunk_height;
 
 	int pixel_offsets[9];
+	int *pixel_offset_map = (int *)(image.get_pixel_offset_map());
 
 	//#pragma omp parallel for
 	for (int y_coord = y_start; y_coord < (y_start + chunk_height); y_coord++)	
@@ -90,7 +91,7 @@ void IMAGE_PROC::process_chunk(IMAGE &image, int chunk_x, int chunk_y, KERNEL& k
 			
 			for (int i = -1; i<=1; i++) {
 				for (int j = -1; j<=1; j++) {
-					pixel_offsets[3*(i+1) + (j+1)] = bpp * image.get_pixel_offset(x_coord + j, y_coord + i);
+					pixel_offsets[3*(i+1) + (j+1)] = bpp * (*(pixel_offset_map + ((y_coord + i) * image_width) + x_coord + j));
 				}
 			}
 
@@ -164,7 +165,27 @@ double IMAGE_PROC::convolve(IMAGE& image, KERNEL& kernel)
 }
 
 
-bool IMAGE_PROC::convert_layout(IMAGE &image, LAYOUT_CONVERSION_DIRECTION direction, void *raw_data)
+bool IMAGE_PROC::generate_pixel_offset_map(IMAGE& image)
+{
+	int x_coord, y_coord;
+	int image_width = image.get_image_width();
+	int image_height = image.get_image_height();
+	LAYOUT image_layout = image.get_image_layout();
+	int *pixel_offset_map = (int *)(image.get_pixel_offset_map());
+
+	for (y_coord = 0; y_coord < image_height; y_coord++)
+	{
+		for (x_coord = 0; x_coord < image_width; x_coord++)
+		{
+			*(pixel_offset_map + (y_coord * image_width) + x_coord) = image.get_pixel_offset(x_coord, y_coord);
+		}
+	}
+
+	return true;
+}
+
+
+bool IMAGE_PROC::convert_layout(IMAGE& image, LAYOUT_CONVERSION_DIRECTION direction, void *raw_data)
 {
 	int x_coord, y_coord;
 	int image_width = image.get_image_width();

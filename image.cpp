@@ -267,8 +267,12 @@ IMAGE::IMAGE(int width, int height, FORMAT format, LAYOUT layout, void *raw_data
 	m_pixel_data = malloc(size);
 	m_processed_pixel_data = malloc(size);
 
-	if (!m_pixel_data || !m_processed_pixel_data)
+	m_pixel_offset_map = malloc(m_width * m_height * sizeof(int));
+
+	if (!m_pixel_data || !m_processed_pixel_data || !m_pixel_offset_map)
 		return;
+
+	image_proc->generate_pixel_offset_map(*this);
 
 	image_proc->convert_layout(*this, CONVERT_LAYOUT_IN, raw_data);
 }

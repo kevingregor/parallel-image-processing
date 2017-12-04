@@ -80,6 +80,9 @@ extern "C"
 		// Processed Image Data
 		void *        m_processed_pixel_data;
 
+		// Map of Pixel Offsets
+		void *        m_pixel_offset_map;
+
 		public:
 
 		IMAGE(int width, int height, FORMAT format, LAYOUT layout, void *raw_data);
@@ -91,6 +94,9 @@ extern "C"
 
 			if (m_processed_pixel_data)
 				free(m_processed_pixel_data);
+
+			if (m_pixel_offset_map)
+				free(m_pixel_offset_map);
 		}
 
 		int get_image_width()	{ return m_width; }
@@ -104,6 +110,8 @@ extern "C"
 		void *get_image_pixel_data()	{ return m_pixel_data; }
 
 		void *get_image_processed_pixel_data()	{ return m_processed_pixel_data; }
+
+		void *get_pixel_offset_map()	{ return m_pixel_offset_map; }
 
 		int get_pixel_offset(int x_coord, int y_coord);
 	};

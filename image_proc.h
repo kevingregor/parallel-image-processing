@@ -66,9 +66,11 @@ extern "C"
 
 		double convolve(IMAGE& image, KERNEL& kernel);
 
-		bool convert_layout(IMAGE &image, LAYOUT_CONVERSION_DIRECTION direction, void *raw_data);
+		bool convert_layout(IMAGE& image, LAYOUT_CONVERSION_DIRECTION direction, void *raw_data);
 
 		void process_chunk(IMAGE& image, int chunk_x, int chunk_y, KERNEL& kernel);
+
+		bool generate_pixel_offset_map(IMAGE& image);
 	};
 }
 

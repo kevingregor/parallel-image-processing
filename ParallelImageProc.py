@@ -86,7 +86,7 @@ if __name__ == '__main__':
 
     toPrint = "\n" + args.image_file + ":\n"
     for Filter in ["BOX_FILTER", "GAUSSIAN_BLUR", "EDGE_DETECT"]:
-        for layout in ["STRIDED", 'BLOCK_LINEAR_8', 'BLOCK_LINEAR_16', 'BLOCK_LINEAR_32', 'TWIDDLED']:
+        for layout in ['STRIDED', 'BLOCK_LINEAR_8', 'BLOCK_LINEAR_16', 'BLOCK_LINEAR_32', 'TWIDDLED']:
             img = Image.open(args.image_file)
             input_img = np.array(img)
             input_img = input_img[:,:,::-1]
