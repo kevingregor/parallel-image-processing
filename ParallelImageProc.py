@@ -113,5 +113,5 @@ if __name__ == '__main__':
 
             Image.fromarray(processed_output).save('processed_' + Filter + '_' + layout + '_' + args.image_file)
 
-    print toPrint
+    print (toPrint)
 
