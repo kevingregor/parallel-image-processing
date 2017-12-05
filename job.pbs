@@ -4,14 +4,14 @@
 # A modest timeout of 1 minute is used, which should be
 # plenty of time for this job to complete.
 
-#PBS -l nodes=1:ppn=8
+#PBS -l nodes=1:ppn=16
 #PBS -l walltime=0:05:00
 #PBS -N image_proc
 #PBS -j oe
 
 cd "$PBS_O_WORKDIR"
 module load anaconda;
-export OMP_NUM_THREADS=8;
+export OMP_NUM_THREADS=16;
 
 # Run the executable.
 python ParallelImageProc.py earth.jpg
