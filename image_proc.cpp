@@ -1,5 +1,6 @@
 
 #include "image_proc.h"
+#include <string.h>
 #include <omp.h>
 
 
@@ -57,7 +58,7 @@ KERNEL::KERNEL(FILTER_TYPE filter_type)
 		}
 	}
 }
-
+                                          
 
 void IMAGE_PROC::process_chunk(IMAGE &image, int chunk_x, int chunk_y, KERNEL& kernel)
 {
@@ -95,16 +96,6 @@ void IMAGE_PROC::process_chunk(IMAGE &image, int chunk_x, int chunk_y, KERNEL& k
 				}
 			}
 
-			// int pixel_offset_00 = bpp * image.get_pixel_offset(x_coord - 1, y_coord - 1);
-			// int pixel_offset_01 = bpp * image.get_pixel_offset(x_coord, y_coord - 1);
-			// int pixel_offset_02 = bpp * image.get_pixel_offset(x_coord + 1, y_coord - 1);
-			// int pixel_offset_10 = bpp * image.get_pixel_offset(x_coord - 1, y_coord);
-			// int pixel_offset_11 = bpp * image.get_pixel_offset(x_coord, y_coord);
-			// int pixel_offset_12 = bpp * image.get_pixel_offset(x_coord + 1, y_coord);
-			// int pixel_offset_20 = bpp * image.get_pixel_offset(x_coord - 1, y_coord + 1);
-			// int pixel_offset_21 = bpp * image.get_pixel_offset(x_coord, y_coord + 1);
-			// int pixel_offset_22 = bpp * image.get_pixel_offset(x_coord + 1, y_coord + 1);
-
 			for (int channel = 0; channel < channels_per_pixel(image_format); channel++)
 			{
 				float result = 0.0f;
@@ -133,6 +124,98 @@ void IMAGE_PROC::process_chunk(IMAGE &image, int chunk_x, int chunk_y, KERNEL& k
 	}
 }
 
+void populateArray(uintptr_t pixel_data, float matrix[], float weight, int bpp, int cpp) {
+	for (int channel = 0; channel < cpp; channel++) {
+		matrix[0 + channel] = *(reinterpret_cast<float *>(pixel_data + (channel * sizeof(float)))) * weight;
+		matrix[1*cpp + channel] = *(reinterpret_cast<float *>(pixel_data + bpp + (channel * sizeof(float)))) * weight;
+		matrix[2*cpp + channel] = *(reinterpret_cast<float *>(pixel_data + 2 * bpp + (channel * sizeof(float)))) * weight;
+		matrix[3*cpp + channel] = *(reinterpret_cast<float *>(pixel_data + 5 * bpp + (channel * sizeof(float)))) * weight;
+		matrix[4*cpp + channel] = *(reinterpret_cast<float *>(pixel_data + 6 * bpp + (channel * sizeof(float)))) * weight;
+		matrix[5*cpp + channel] = *(reinterpret_cast<float *>(pixel_data + 7 * bpp + (channel * sizeof(float)))) * weight;
+		matrix[6*cpp + channel] = *(reinterpret_cast<float *>(pixel_data + 10 * bpp + (channel * sizeof(float)))) * weight;
+		matrix[7*cpp + channel] = *(reinterpret_cast<float *>(pixel_data + 11 * bpp + (channel * sizeof(float)))) * weight;
+		matrix[8*cpp + channel] = *(reinterpret_cast<float *>(pixel_data + 12 * bpp + (channel * sizeof(float)))) * weight;
+	}
+}
+
+void IMAGE_PROC::convolveGhost(IMAGE& image, KERNEL& kernel) {
+	int image_width = image.get_image_width();
+	int image_height = image.get_image_height();
+	FORMAT image_format = image.get_image_format();
+	LAYOUT image_layout = image.get_image_layout();
+	void *image_pixel_data = image.get_image_pixel_data();
+	void *image_processed_pixel_data = image.get_image_processed_pixel_data();
+
+	int n_blocks_width = image_width / 3;
+	int n_blocks_height = image_height / 3;
+
+	int curr_block_x = 0;
+	int curr_block_y = 0;
+
+	uintptr_t output_pixel_data = reinterpret_cast<uintptr_t>(image_processed_pixel_data);
+
+	int offset = 0;
+	int cpp = channels_per_pixel(image_format);
+	int bpp = cpp * sizeof(float);
+
+	while (curr_block_y < n_blocks_height - 1 || curr_block_x < n_blocks_width - 1) {
+		// Do whole block of 9 array additions
+
+		uintptr_t pixel_data = reinterpret_cast<uintptr_t>(image_pixel_data) + offset;
+
+		// Initialize convolved matrix
+		float convolved[9*cpp];
+
+		// Make 9 arrays and add
+		float matrixTL[9*cpp];
+		float matrixTC[9*cpp];
+		float matrixTR[9*cpp];
+		float matrixML[9*cpp];
+		float matrixMC[9*cpp];
+		float matrixMR[9*cpp];
+		float matrixBL[9*cpp];
+		float matrixBC[9*cpp];
+		float matrixBR[9*cpp];
+
+		populateArray(pixel_data, matrixTL, kernel.h_00, bpp, cpp);
+		populateArray(pixel_data + 1*bpp, matrixTC, kernel.h_01, bpp, cpp);
+		populateArray(pixel_data + 2*bpp, matrixTR, kernel.h_02, bpp, cpp);
+		populateArray(pixel_data + 5*bpp, matrixML, kernel.h_10, bpp, cpp);
+		populateArray(pixel_data + 6*bpp, matrixMC, kernel.h_11, bpp, cpp);
+		populateArray(pixel_data + 7*bpp, matrixMR, kernel.h_12, bpp, cpp);
+		populateArray(pixel_data + 10*bpp, matrixBL, kernel.h_20, bpp, cpp);
+		populateArray(pixel_data + 11*bpp, matrixBC, kernel.h_21, bpp, cpp);
+		populateArray(pixel_data + 12*bpp, matrixBR, kernel.h_22, bpp, cpp);
+
+		for (int i = 0; i <= 9*cpp; i++) {
+			convolved[i] = matrixTL[i] + matrixTC[i] + matrixTR[i] + matrixML[i] + matrixMC[i] + matrixMR[i] + matrixBL[i] + matrixBC[i] + matrixBR[i];
+			if (convolved[i] < 0.0f)
+				convolved[i] = 0.0f;
+			else if (convolved[i] > 1.0f)
+				convolved[i] = 1.0f;
+		}
+		// populateArray(pixel_data + 6*bpp, convolved, 1.0f, bpp, cpp);
+
+		// Add convolved matrix/array to output pixel data
+		float *pixel_data_ptr = reinterpret_cast<float *>(output_pixel_data);
+		memcpy(pixel_data_ptr, convolved, 9*bpp);
+
+		output_pixel_data += 9*bpp;
+
+		// Move to the next block:
+		if (curr_block_y < n_blocks_height - 1) {
+			// If not at the last row block
+			offset += 15 * bpp; // Increase the offset by 15 (goes to the next block)
+			curr_block_y++; // Set the marker for current block
+		}
+		else {
+			offset += 25 * bpp; // Increase offset to go to first block in next col
+			curr_block_y = 0; // Update y to the top
+			curr_block_x++; // Go to the next column for x
+		}
+	}
+}
+
 
 double IMAGE_PROC::convolve(IMAGE& image, KERNEL& kernel)
 {
@@ -147,20 +230,24 @@ double IMAGE_PROC::convolve(IMAGE& image, KERNEL& kernel)
 
 	double start_time = omp_get_wtime();
 
-	#pragma omp parallel
-	{
-		for (int chunk_y = 0; chunk_y < num_chunks_y; chunk_y++)
+	switch (image.get_image_layout) {
+		case GHOST_CELLS:
 		{
-			for (int chunk_x = 0; chunk_x < num_chunks_x; chunk_x++)
+			convolveGhost(image, kernel);
+		}
+		case STRIDED:
+		{
+			for (int chunk_y = omp_get_thread_num(); chunk_y < num_chunks_y; chunk_y+=omp_get_num_threads())
 			{
-				#pragma omp task
-				process_chunk(image, chunk_x, chunk_y, kernel);
+				for (int chunk_x = omp_get_thread_num(); chunk_x < num_chunks_x; chunk_x+=omp_get_num_threads())
+				{
+					process_chunk(image, chunk_x, chunk_y, kernel);
+				}
 			}
 		}
 	}
 
 	double time = omp_get_wtime() - start_time;
-
 	return time;
 }
 
@@ -200,19 +287,49 @@ bool IMAGE_PROC::convert_layout(IMAGE& image, LAYOUT_CONVERSION_DIRECTION direct
 	{
 		case CONVERT_LAYOUT_IN:
 		{
+			// ORIGINAL CODE
+
 			// The input raw_data is always supposed to be strided
-			for (y_coord = 0; y_coord < image_height; y_coord++)
-			{	
-				for (x_coord = 0; x_coord < image_width; x_coord++)
-				{
+			// for (y_coord = 0; y_coord < image_height; y_coord++)
+			// {	
+			// 	for (x_coord = 0; x_coord < image_width; x_coord++)
+			// 	{
+			// 		int bpp_input = bytes_per_pixel(image_format);
+
+			// 		uintptr_t input_pixel_addr = (reinterpret_cast<uintptr_t>(raw_data) + ((image_width * y_coord) + x_coord) * bpp_input);
+
+			// 		normalize_pixel_data(reinterpret_cast<void *>(input_pixel_addr), &normalized_pixel_data[0], image_format);
+
+			// 		uintptr_t pixel_addr = reinterpret_cast<uintptr_t>(image_pixel_data)
+			// 							 + (image.get_pixel_offset(x_coord, y_coord) * channels_per_pixel(image_format) * sizeof(float));
+
+			// 		float *pixel_data_ptr = reinterpret_cast<float *>(pixel_addr);
+
+			// 		for (int channel = 0; channel < channels_per_pixel(image_format); channel++)
+			// 		{
+			// 			*(pixel_data_ptr + channel) = normalized_pixel_data[channel];
+			// 		}
+			// 	}
+			// }
+
+
+			// GHOST CELLS CODE
+			int row = 0;
+			int col = 0;
+			int horiz_num = 0;
+
+			int addr = 0;
+			while (row < image_height - 1 || col < image_width - 1) {
+				while (col < horiz_num + 5) {
 					int bpp_input = bytes_per_pixel(image_format);
 
-					uintptr_t input_pixel_addr = (reinterpret_cast<uintptr_t>(raw_data) + ((image_width * y_coord) + x_coord) * bpp_input);
+					uintptr_t input_pixel_addr = (reinterpret_cast<uintptr_t>(raw_data) + ((image_width * row) + col) * bpp_input);
 
 					normalize_pixel_data(reinterpret_cast<void *>(input_pixel_addr), &normalized_pixel_data[0], image_format);
 
-					uintptr_t pixel_addr = reinterpret_cast<uintptr_t>(image_pixel_data)
-										 + (image.get_pixel_offset(x_coord, y_coord) * channels_per_pixel(image_format) * sizeof(float));
+					uintptr_t pixel_addr = reinterpret_cast<uintptr_t>(image_pixel_data) + (addr * channels_per_pixel(image_format) * sizeof(float));
+
+					addr++;
 
 					float *pixel_data_ptr = reinterpret_cast<float *>(pixel_addr);
 
@@ -220,28 +337,62 @@ bool IMAGE_PROC::convert_layout(IMAGE& image, LAYOUT_CONVERSION_DIRECTION direct
 					{
 						*(pixel_data_ptr + channel) = normalized_pixel_data[channel];
 					}
+
+					col++;
 				}
+				if (row < image_height - 1) {
+					row++;
+				}
+				else {
+					row = 0;
+					horiz_num += 3;
+				}
+				col = horiz_num;
 			}
+
 
 			break;
 		}
 		case CONVERT_LAYOUT_OUT:
 		{
 			// The output raw_data is always supposed to be strided
-			for (y_coord = 1; y_coord < (image_height - 1); y_coord++)
-			{	
-				for (x_coord = 1; x_coord < (image_width - 1); x_coord++)
-				{
-					int bpp_output = bytes_per_pixel(image_format);
+			// for (y_coord = 1; y_coord < (image_height - 1); y_coord++)
+			// {	
+			// 	for (x_coord = 1; x_coord < (image_width - 1); x_coord++)
+			// 	{
+			// 		int bpp_output = bytes_per_pixel(image_format);
 
+			// 		uintptr_t output_pixel_addr = reinterpret_cast<uintptr_t>(raw_data)
+			// 									+ (((image_width * y_coord) + x_coord) * bpp_output);
+
+			// 		uintptr_t pixel_addr = reinterpret_cast<uintptr_t>(image_processed_pixel_data)
+			// 							 + (image.get_pixel_offset(x_coord, y_coord) * channels_per_pixel(image_format) * sizeof(float));
+
+			// 		float *pixel_data_ptr = reinterpret_cast<float *>(pixel_addr);
+
+			// 		for (int channel = 0; channel < channels_per_pixel(image_format); channel++)
+			// 		{
+			// 			normalized_pixel_data[channel] = *(pixel_data_ptr + channel);
+			// 		}
+
+			// 		unnormalize_pixel_data(reinterpret_cast<void *>(output_pixel_addr), &normalized_pixel_data[0], image_format);
+			// 	}
+			// }
+
+			// GHOST CELLS CODE
+			int n_blocks_height = image_height / 3;
+			int n_blocks_width = image_width / 3;
+			int bpp_output = bytes_per_pixel(image_format);
+
+			for (int block_num = 0; block_num < n_blocks_height*n_blocks_width - 1; block_num++) {
+				for (int in_block_ix = 0; in_block_ix < 9; in_block_ix++) {
+					int y_coord = (block_num % n_blocks_height) * 3 + 1 + (in_block_ix / 3);
+					int x_coord = (block_num / n_blocks_height) * 3 + 1 + (in_block_ix % 3);
 					uintptr_t output_pixel_addr = reinterpret_cast<uintptr_t>(raw_data)
 												+ (((image_width * y_coord) + x_coord) * bpp_output);
-
 					uintptr_t pixel_addr = reinterpret_cast<uintptr_t>(image_processed_pixel_data)
-										 + (image.get_pixel_offset(x_coord, y_coord) * channels_per_pixel(image_format) * sizeof(float));
-
+										 + (((block_num * 9) + in_block_ix) * channels_per_pixel(image_format) * sizeof(float));
 					float *pixel_data_ptr = reinterpret_cast<float *>(pixel_addr);
-
 					for (int channel = 0; channel < channels_per_pixel(image_format); channel++)
 					{
 						normalized_pixel_data[channel] = *(pixel_data_ptr + channel);

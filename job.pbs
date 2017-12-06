@@ -1,9 +1,5 @@
 #!/bin/sh
 
-# We only need a single processor to print hello, so ppn=1.
-# A modest timeout of 1 minute is used, which should be
-# plenty of time for this job to complete.
-
 #PBS -l nodes=1:ppn=16
 #PBS -l walltime=0:05:00
 #PBS -N image_proc
@@ -16,8 +12,8 @@ export OMP_NUM_THREADS=16;
 # Run the executable.
 python ParallelImageProc.py earth.jpg
 
-python ParallelImageProc.py fruit.jpg
+#python ParallelImageProc.py fruit.jpg
 
-python ParallelImageProc.py sun.jpeg
+#python ParallelImageProc.py sun.jpeg
 
-python ParallelImageProc.py money.png
+#python ParallelImageProc.py money.png

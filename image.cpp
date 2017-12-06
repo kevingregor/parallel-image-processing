@@ -232,6 +232,13 @@ IMAGE::IMAGE(int width, int height, FORMAT format, LAYOUT layout, void *raw_data
 
 			break;
 		}
+		case GHOST_CELLS:
+		{
+			m_width_in_blocks = width / 3;
+			int n_height_blocks = height / 3;
+			size = 5 * (n_height_blocks * 3 + 2) * m_width_in_blocks * channels_per_pixel(format) * sizeof(float);
+			break;
+		}
 		case TWIDDLED:
 		{
 			if (width & (width - 1))

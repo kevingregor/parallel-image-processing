@@ -1,6 +1,7 @@
 
 CXX = g++
 CXX_FLAGS = -O3 -fPIC -fopenmp
+# CXX_FLAGS = -O3 -fPIC
 LINK_FLAGS = -shared
 
 

@@ -23,7 +23,7 @@ class CppObj(object):
         self.image_cpp = library.create_image_instance(image.ctypes.data_as(ctypes.c_void_p), ctypes.c_int(np.shape(image)[1]), ctypes.c_int(np.shape(image)[0]), Format, layout)
 
     def perform_filtering(self, Filter):
-        library.perform_filtering.restype = ctypes.c_double
+        library.perform_filtering.restype = ctypes.c_float
         return library.perform_filtering(ctypes.c_void_p(self.image_cpp), Filter)
 
     def get_processed_image(self, output):
@@ -59,6 +59,8 @@ def matchLayout(layout):
         return ctypes.c_int(3)
     elif layout == "TWIDDLED":
         return ctypes.c_int(4)
+    elif layout == "GHOST_CELLS":
+        return ctypes.c_int(5)
     else:
         return ctypes.c_int(-1)
 
@@ -86,7 +88,7 @@ if __name__ == '__main__':
 
     toPrint = "\n" + args.image_file + ":\n"
     for Filter in ["BOX_FILTER", "GAUSSIAN_BLUR", "EDGE_DETECT"]:
-        for layout in ['STRIDED', 'BLOCK_LINEAR_8', 'BLOCK_LINEAR_16', 'BLOCK_LINEAR_32', 'TWIDDLED']:
+        for layout in ['GHOST_CELLS']:
             img = Image.open(args.image_file)
             input_img = np.array(img)
             input_img = input_img[:,:,::-1]
@@ -98,14 +100,15 @@ if __name__ == '__main__':
             obj = CppObj(input_img, matchFormat("RGB888"), matchLayout(layout)) # Create the C++ IMAGE object
             
             total_time = 0.0
-            num_iters = 10
+            num_iters = 1
             for i in range(num_iters):
-                time = obj.perform_filtering(matchFilter(Filter))
-                total_time += time
+                timex = obj.perform_filtering(matchFilter(Filter))
+                total_time += timex
 
             toPrint += (Filter + " " + layout+ ": " + str(total_time/num_iters) + "\n")
 
             obj.get_processed_image(processed_output)
+            # print (processed_output)
 
             obj.destroy_image_instance()
 
@@ -113,5 +116,5 @@ if __name__ == '__main__':
 
             Image.fromarray(processed_output).save('processed_' + Filter + '_' + layout + '_' + args.image_file)
 
-    print toPrint
+    print (toPrint)
 
