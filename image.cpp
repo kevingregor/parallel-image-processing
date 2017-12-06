@@ -279,7 +279,7 @@ IMAGE::IMAGE(int width, int height, FORMAT format, LAYOUT layout, void *raw_data
 	if (!m_pixel_data || !m_processed_pixel_data || !m_pixel_offset_map)
 		return;
 
-	image_proc->generate_pixel_offset_map(*this);
+	// image_proc->generate_pixel_offset_map(*this);
 
 	image_proc->convert_layout(*this, CONVERT_LAYOUT_IN, raw_data);
 }

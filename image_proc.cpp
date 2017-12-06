@@ -1,7 +1,7 @@
 
 #include "image_proc.h"
 #include <string.h>
-#include <omp.h>
+// #include <omp.h>
 
 
 KERNEL::KERNEL(FILTER_TYPE filter_type)
@@ -219,36 +219,36 @@ void IMAGE_PROC::convolveGhost(IMAGE& image, KERNEL& kernel) {
 
 double IMAGE_PROC::convolve(IMAGE& image, KERNEL& kernel)
 {
-	num_chunks_x = 4;
-	num_chunks_y = 4;
+	// num_chunks_x = 4;
+	// num_chunks_y = 4;
 
-	int image_width = image.get_image_width();
-	int image_height = image.get_image_height();
+	// int image_width = image.get_image_width();
+	// int image_height = image.get_image_height();
 
-	chunk_width = (image_width + (num_chunks_x - 1)) / num_chunks_x;
-	chunk_height = (image_height + (num_chunks_y - 1)) / num_chunks_y;
+	// chunk_width = (image_width + (num_chunks_x - 1)) / num_chunks_x;
+	// chunk_height = (image_height + (num_chunks_y - 1)) / num_chunks_y;
 
-	double start_time = omp_get_wtime();
+	// double start_time = omp_get_wtime();
 
-	switch (image.get_image_layout) {
-		case GHOST_CELLS:
-		{
-			convolveGhost(image, kernel);
-		}
-		case STRIDED:
-		{
-			for (int chunk_y = omp_get_thread_num(); chunk_y < num_chunks_y; chunk_y+=omp_get_num_threads())
-			{
-				for (int chunk_x = omp_get_thread_num(); chunk_x < num_chunks_x; chunk_x+=omp_get_num_threads())
-				{
-					process_chunk(image, chunk_x, chunk_y, kernel);
-				}
-			}
-		}
-	}
+	// #pragma omp parallel
+	// {
+	// 	for (int chunk_y = omp_get_thread_num(); chunk_y < num_chunks_y; chunk_y+=omp_get_num_threads())
+	// 	{
+	// 		for (int chunk_x = omp_get_thread_num(); chunk_x < num_chunks_x; chunk_x+=omp_get_num_threads())
+	// 		{
+	// 			#pragma omp single
+	// 			{
+	// 			#pragma omp task
+	// 			process_chunk(image, chunk_x, chunk_y, kernel);
+	// 			}
+	// 		}
+	// 	}
+	// }
 
-	double time = omp_get_wtime() - start_time;
-	return time;
+	// double time = omp_get_wtime() - start_time;
+
+	convolveGhost(image, kernel);
+	return 5.0;
 }
 
 
