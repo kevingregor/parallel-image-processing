@@ -153,6 +153,7 @@ void IMAGE_PROC::convolveGhostFor(IMAGE& image, KERNEL& kernel) {
 	int cpp = channels_per_pixel(image_format);
 	int bpp = cpp * sizeof(float);
 
+	#pragma omp parallel for collapse(2)
 	for (int curr_block_x = 0; curr_block_x < n_blocks_width; curr_block_x++) {
 		for (int curr_block_y = 0; curr_block_y < n_blocks_height; curr_block_y++) {
 			int offset = (curr_block_x * x_multiplier + curr_block_y * 15) * bpp;
@@ -298,6 +299,7 @@ double IMAGE_PROC::convolve(IMAGE& image, KERNEL& kernel)
 	double start_time = omp_get_wtime();
 	
 	if (layout != GHOST_CELLS) {
+		#pragma omp parallel for collapse(2)
 		for (int chunk_y = 0; chunk_y < num_chunks_y; chunk_y++)
 		{
 			for (int chunk_x = 0; chunk_x < num_chunks_x; chunk_x++)
@@ -459,6 +461,8 @@ bool IMAGE_PROC::convert_layout(IMAGE& image, LAYOUT_CONVERSION_DIRECTION direct
 				for (int in_block_ix = 0; in_block_ix < 9; in_block_ix++) {
 					int y_coord = (block_num % n_blocks_height) * 3 + 1 + (in_block_ix / 3);
 					int x_coord = (block_num / n_blocks_height) * 3 + 1 + (in_block_ix % 3);
+					if (x_coord < image_width - 1 && y_coord < image_height - 1) {
+
 					uintptr_t output_pixel_addr = reinterpret_cast<uintptr_t>(raw_data)
 												+ (((image_width * y_coord) + x_coord) * bpp_output);
 					uintptr_t pixel_addr = reinterpret_cast<uintptr_t>(image_processed_pixel_data)
@@ -470,6 +474,7 @@ bool IMAGE_PROC::convert_layout(IMAGE& image, LAYOUT_CONVERSION_DIRECTION direct
 					}
 
 					unnormalize_pixel_data(reinterpret_cast<void *>(output_pixel_addr), &normalized_pixel_data[0], image_format);
+					}
 				}
 			}
 			}

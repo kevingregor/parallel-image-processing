@@ -93,6 +93,7 @@ if __name__ == '__main__':
         for Filter in ["BOX_FILTER", "GAUSSIAN_BLUR", "EDGE_DETECT"]:
             img = Image.open(args.image_file)
             input_img = np.array(img)
+         
             input_img = input_img[:,:,::-1]
 
             # initializing so that the dimensions match
