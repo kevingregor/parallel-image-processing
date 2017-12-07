@@ -1,19 +1,27 @@
 #!/bin/sh
 
-#PBS -l nodes=1:ppn=16
-#PBS -l walltime=0:05:00
+#PBS -l nodes=1:ppn=20
+#PBS -l walltime=0:20:00
 #PBS -N image_proc
 #PBS -j oe
 
 cd "$PBS_O_WORKDIR"
 module load anaconda;
-export OMP_NUM_THREADS=16;
+export OMP_NUM_THREADS=20;
 
 # Run the executable.
-python ParallelImageProc.py earth.jpg
+python ParallelImageProc.py 128.png
 
-#python ParallelImageProc.py fruit.jpg
+python ParallelImageProc.py 256.png
 
-#python ParallelImageProc.py sun.jpeg
+python ParallelImageProc.py 512.png
 
-#python ParallelImageProc.py money.png
+python ParallelImageProc.py 850.jpg
+
+python ParallelImageProc.py 1000.jpg
+
+python ParallelImageProc.py 1024.jpg
+
+python ParallelImageProc.py 2048.jpg
+
+python ParallelImageProc.py 4096.jpeg
