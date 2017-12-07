@@ -88,8 +88,9 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     toPrint = "\n" + args.image_file + ":\n"
-    for Filter in ["BOX_FILTER", "GAUSSIAN_BLUR", "EDGE_DETECT"]:
-        for layout in ['GHOST_CELLS']:
+    for layout in ['GHOST_CELLS', 'STRIDED', 'BLOCK_LINEAR_8','BLOCK_LINEAR_16','BLOCK_LINEAR_32', 'TWIDDLED']:
+        total_layout = 0.0;
+        for Filter in ["BOX_FILTER", "GAUSSIAN_BLUR", "EDGE_DETECT"]:
             img = Image.open(args.image_file)
             input_img = np.array(img)
             input_img = input_img[:,:,::-1]
@@ -101,15 +102,13 @@ if __name__ == '__main__':
             obj = CppObj(input_img, matchFormat("RGB888"), matchLayout(layout)) # Create the C++ IMAGE object
             
             total_time = 0.0
-            num_iters = 10
-            then = time()
+            num_iters = 25
             for i in range(num_iters):
                 timex = obj.perform_filtering(matchFilter(Filter))
                 total_time += timex
-            now = time()
             
-
-            toPrint += (Filter + " " + layout+ ": " + str((now - then)/num_iters) + "\n")
+            total_layout += total_time/num_iters;
+            toPrint += (Filter + " " + layout+ ": " + str(total_time/num_iters) + "\n")
 
             obj.get_processed_image(processed_output)
             # print (processed_output)
@@ -119,7 +118,6 @@ if __name__ == '__main__':
             processed_output = processed_output[:,:,::-1]
 
             Image.fromarray(processed_output).save('processed_' + Filter + '_' + layout + '_' + args.image_file)
-            
-
+        print ("Layout: " + layout + ", Time: " + str(total_layout))
     print (toPrint)
 

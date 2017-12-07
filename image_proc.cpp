@@ -1,7 +1,7 @@
 
 #include "image_proc.h"
 #include <string.h>
-// #include <omp.h>
+#include <omp.h>
 
 
 KERNEL::KERNEL(FILTER_TYPE filter_type)
@@ -187,6 +187,7 @@ void IMAGE_PROC::convolveGhost(IMAGE& image, KERNEL& kernel) {
 		populateArray(pixel_data + 11*bpp, matrixBC, kernel.h_21, bpp, cpp);
 		populateArray(pixel_data + 12*bpp, matrixBR, kernel.h_22, bpp, cpp);
 
+		
 		for (int i = 0; i <= 9*cpp; i++) {
 			convolved[i] = matrixTL[i] + matrixTC[i] + matrixTR[i] + matrixML[i] + matrixMC[i] + matrixMR[i] + matrixBL[i] + matrixBC[i] + matrixBR[i];
 			if (convolved[i] < 0.0f)
@@ -219,29 +220,33 @@ void IMAGE_PROC::convolveGhost(IMAGE& image, KERNEL& kernel) {
 
 double IMAGE_PROC::convolve(IMAGE& image, KERNEL& kernel)
 {
-	// num_chunks_x = 4;
-	// num_chunks_y = 4;
+	LAYOUT layout = image.get_image_layout();
+	num_chunks_x = 4;
+	num_chunks_y = 4;
 
-	// int image_width = image.get_image_width();
-	// int image_height = image.get_image_height();
+	int image_width = image.get_image_width();
+	int image_height = image.get_image_height();
 
-	// chunk_width = (image_width + (num_chunks_x - 1)) / num_chunks_x;
-	// chunk_height = (image_height + (num_chunks_y - 1)) / num_chunks_y;
+	chunk_width = (image_width + (num_chunks_x - 1)) / num_chunks_x;
+	chunk_height = (image_height + (num_chunks_y - 1)) / num_chunks_y;
 
-	// // double start_time = omp_get_wtime();
-
-	// 	for (int chunk_y = 0; chunk_y < num_chunks_y; chunk_y++)
-	// 	{
-	// 		for (int chunk_x = 0; chunk_x < num_chunks_x; chunk_x++)
-	// 		{
-	// 			process_chunk(image, chunk_x, chunk_y, kernel);
-	// 		}
-	// 	}
-
-	// double time = omp_get_wtime() - start_time;
-
+	double start_time = omp_get_wtime();
+	
+	if (layout != GHOST_CELLS) {
+	for (int chunk_y = 0; chunk_y < num_chunks_y; chunk_y++)
+	{
+		for (int chunk_x = 0; chunk_x < num_chunks_x; chunk_x++)
+	 	{
+	 		process_chunk(image, chunk_x, chunk_y, kernel);
+	 	}
+	}
+	}
+	else {
 	convolveGhost(image, kernel);
-	return 5.0;
+	}
+	
+	double time = omp_get_wtime() - start_time;
+	return time;
 }
 
 
@@ -280,30 +285,32 @@ bool IMAGE_PROC::convert_layout(IMAGE& image, LAYOUT_CONVERSION_DIRECTION direct
 	{
 		case CONVERT_LAYOUT_IN:
 		{
+			if (image_layout != GHOST_CELLS) {
 			// ORIGINAL CODE
-
 			// The input raw_data is always supposed to be strided
-			// for (y_coord = 0; y_coord < image_height; y_coord++)
-			// {	
-			// 	for (x_coord = 0; x_coord < image_width; x_coord++)
-			// 	{
-			// 		int bpp_input = bytes_per_pixel(image_format);
+			 for (y_coord = 0; y_coord < image_height; y_coord++)
+			 {	
+			 	for (x_coord = 0; x_coord < image_width; x_coord++)
+			 	{
+			 		int bpp_input = bytes_per_pixel(image_format);
 
-			// 		uintptr_t input_pixel_addr = (reinterpret_cast<uintptr_t>(raw_data) + ((image_width * y_coord) + x_coord) * bpp_input);
+			 		uintptr_t input_pixel_addr = (reinterpret_cast<uintptr_t>(raw_data) + ((image_width * y_coord) + x_coord) * bpp_input);
 
-			// 		normalize_pixel_data(reinterpret_cast<void *>(input_pixel_addr), &normalized_pixel_data[0], image_format);
+			 		normalize_pixel_data(reinterpret_cast<void *>(input_pixel_addr), &normalized_pixel_data[0], image_format);
 
-			// 		uintptr_t pixel_addr = reinterpret_cast<uintptr_t>(image_pixel_data)
-			// 							 + (image.get_pixel_offset(x_coord, y_coord) * channels_per_pixel(image_format) * sizeof(float));
+			 		uintptr_t pixel_addr = reinterpret_cast<uintptr_t>(image_pixel_data)
+			 							 + (image.get_pixel_offset(x_coord, y_coord) * channels_per_pixel(image_format) * sizeof(float));
 
-			// 		float *pixel_data_ptr = reinterpret_cast<float *>(pixel_addr);
+			 		float *pixel_data_ptr = reinterpret_cast<float *>(pixel_addr);
 
-			// 		for (int channel = 0; channel < channels_per_pixel(image_format); channel++)
-			// 		{
-			// 			*(pixel_data_ptr + channel) = normalized_pixel_data[channel];
-			// 		}
-			// 	}
-			// }
+			 		for (int channel = 0; channel < channels_per_pixel(image_format); channel++)
+			 		{
+			 			*(pixel_data_ptr + channel) = normalized_pixel_data[channel];
+			 		}
+			 	}
+			 }
+			}
+			else {
 
 
 			// GHOST CELLS CODE
@@ -344,34 +351,39 @@ bool IMAGE_PROC::convert_layout(IMAGE& image, LAYOUT_CONVERSION_DIRECTION direct
 				col = horiz_num;
 			}
 
-
+			}
 			break;
 		}
 		case CONVERT_LAYOUT_OUT:
 		{
+			
+			if (image_layout != GHOST_CELLS) {
 			// The output raw_data is always supposed to be strided
-			// for (y_coord = 1; y_coord < (image_height - 1); y_coord++)
-			// {	
-			// 	for (x_coord = 1; x_coord < (image_width - 1); x_coord++)
-			// 	{
-			// 		int bpp_output = bytes_per_pixel(image_format);
+			 for (y_coord = 1; y_coord < (image_height - 1); y_coord++)
+			 {	
+			 	for (x_coord = 1; x_coord < (image_width - 1); x_coord++)
+			 	{
+			 		int bpp_output = bytes_per_pixel(image_format);
 
-			// 		uintptr_t output_pixel_addr = reinterpret_cast<uintptr_t>(raw_data)
-			// 									+ (((image_width * y_coord) + x_coord) * bpp_output);
+			 		uintptr_t output_pixel_addr = reinterpret_cast<uintptr_t>(raw_data)
+			 									+ (((image_width * y_coord) + x_coord) * bpp_output);
 
-			// 		uintptr_t pixel_addr = reinterpret_cast<uintptr_t>(image_processed_pixel_data)
-			// 							 + (image.get_pixel_offset(x_coord, y_coord) * channels_per_pixel(image_format) * sizeof(float));
+			 		uintptr_t pixel_addr = reinterpret_cast<uintptr_t>(image_processed_pixel_data)
+			 							 + (image.get_pixel_offset(x_coord, y_coord) * channels_per_pixel(image_format) * sizeof(float));
 
-			// 		float *pixel_data_ptr = reinterpret_cast<float *>(pixel_addr);
+			 		float *pixel_data_ptr = reinterpret_cast<float *>(pixel_addr);
 
-			// 		for (int channel = 0; channel < channels_per_pixel(image_format); channel++)
-			// 		{
-			// 			normalized_pixel_data[channel] = *(pixel_data_ptr + channel);
-			// 		}
+			 		for (int channel = 0; channel < channels_per_pixel(image_format); channel++)
+			 		{
+			 			normalized_pixel_data[channel] = *(pixel_data_ptr + channel);
+			 		}
 
-			// 		unnormalize_pixel_data(reinterpret_cast<void *>(output_pixel_addr), &normalized_pixel_data[0], image_format);
-			// 	}
-			// }
+			 		unnormalize_pixel_data(reinterpret_cast<void *>(output_pixel_addr), &normalized_pixel_data[0], image_format);
+			 	}
+			 }
+			}
+
+			else {
 
 			// GHOST CELLS CODE
 			int n_blocks_height = image_height / 3;
@@ -395,7 +407,7 @@ bool IMAGE_PROC::convert_layout(IMAGE& image, LAYOUT_CONVERSION_DIRECTION direct
 					unnormalize_pixel_data(reinterpret_cast<void *>(output_pixel_addr), &normalized_pixel_data[0], image_format);
 				}
 			}
-
+			}
 			break;
 		}
 		default:
