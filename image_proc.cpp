@@ -228,22 +228,15 @@ double IMAGE_PROC::convolve(IMAGE& image, KERNEL& kernel)
 	// chunk_width = (image_width + (num_chunks_x - 1)) / num_chunks_x;
 	// chunk_height = (image_height + (num_chunks_y - 1)) / num_chunks_y;
 
-	// double start_time = omp_get_wtime();
+	// // double start_time = omp_get_wtime();
 
-	// #pragma omp parallel
-	// {
-	// 	for (int chunk_y = omp_get_thread_num(); chunk_y < num_chunks_y; chunk_y+=omp_get_num_threads())
+	// 	for (int chunk_y = 0; chunk_y < num_chunks_y; chunk_y++)
 	// 	{
-	// 		for (int chunk_x = omp_get_thread_num(); chunk_x < num_chunks_x; chunk_x+=omp_get_num_threads())
+	// 		for (int chunk_x = 0; chunk_x < num_chunks_x; chunk_x++)
 	// 		{
-	// 			#pragma omp single
-	// 			{
-	// 			#pragma omp task
 	// 			process_chunk(image, chunk_x, chunk_y, kernel);
-	// 			}
 	// 		}
 	// 	}
-	// }
 
 	// double time = omp_get_wtime() - start_time;
 
@@ -319,25 +312,26 @@ bool IMAGE_PROC::convert_layout(IMAGE& image, LAYOUT_CONVERSION_DIRECTION direct
 			int horiz_num = 0;
 
 			int addr = 0;
-			while (row < image_height - 1 || col < image_width - 1) {
+			while (row < image_height -1 || col < image_width - 1) {
 				while (col < horiz_num + 5) {
+					
 					int bpp_input = bytes_per_pixel(image_format);
 
 					uintptr_t input_pixel_addr = (reinterpret_cast<uintptr_t>(raw_data) + ((image_width * row) + col) * bpp_input);
 
 					normalize_pixel_data(reinterpret_cast<void *>(input_pixel_addr), &normalized_pixel_data[0], image_format);
-
+					
 					uintptr_t pixel_addr = reinterpret_cast<uintptr_t>(image_pixel_data) + (addr * channels_per_pixel(image_format) * sizeof(float));
 
 					addr++;
 
 					float *pixel_data_ptr = reinterpret_cast<float *>(pixel_addr);
-
+					
 					for (int channel = 0; channel < channels_per_pixel(image_format); channel++)
 					{
 						*(pixel_data_ptr + channel) = normalized_pixel_data[channel];
 					}
-
+					
 					col++;
 				}
 				if (row < image_height - 1) {

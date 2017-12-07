@@ -195,7 +195,7 @@ IMAGE::IMAGE(int width, int height, FORMAT format, LAYOUT layout, void *raw_data
 
 	int size = 0;
 
-	assert(!image_proc);
+	//assert(!image_proc);
 
 	image_proc = new IMAGE_PROC();
 
@@ -236,7 +236,7 @@ IMAGE::IMAGE(int width, int height, FORMAT format, LAYOUT layout, void *raw_data
 		{
 			m_width_in_blocks = width / 3;
 			int n_height_blocks = height / 3;
-			size = 5 * (n_height_blocks * 3 + 2) * m_width_in_blocks * channels_per_pixel(format) * sizeof(float);
+			size = 25 * (n_height_blocks * 3 + 2) * m_width_in_blocks * channels_per_pixel(format) * sizeof(float);
 			break;
 		}
 		case TWIDDLED:

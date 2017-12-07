@@ -40,7 +40,7 @@ extern "C"
 		BLOCK_LINEAR_16    = 2,    // Blocked Layout with Block Size 16 x 16
 		BLOCK_LINEAR_32    = 3,    // Blocked Layout with Block Size 32 x 32
 		TWIDDLED           = 4,    // Z-Morton Layout
-		GHOST_CELLS		   = 5,
+		GHOST_CELLS	   = 5,
 		NUM_LAYOUTS        = 6,
 		INVALID_LAYOUT     = -1
 	};
