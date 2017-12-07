@@ -66,6 +66,7 @@ extern "C"
 
 		double convolve(IMAGE& image, KERNEL& kernel);
 		void convolveGhost(IMAGE& image, KERNEL& kernel);
+		void convolveGhostFor(IMAGE& image, KERNEL& kernel);
 
 		bool convert_layout(IMAGE& image, LAYOUT_CONVERSION_DIRECTION direction, void *raw_data);
 
